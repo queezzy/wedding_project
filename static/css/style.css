@@ -545,15 +545,14 @@ h1, h2, h3 {
 }
 
 /* ============================================================
-   GALERIE — MASONRY GRID
+   GALERIE — GRID 3 × 3
    ============================================================ */
 .gallery-grid {
-  columns: 3;
-  column-gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
 }
 .gallery-item {
-  break-inside: avoid;
-  margin-bottom: 1rem;
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -570,6 +569,8 @@ h1, h2, h3 {
 }
 .gallery-img {
   width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
   display: block;
   transition: transform 0.4s ease;
   border-radius: var(--radius);
@@ -1360,7 +1361,7 @@ h1, h2, h3 {
   .nav-hamburger { display: flex; }
   .nav-links {
     position: fixed;
-    top: var(--nav-height);
+    top: 0;
     left: 0;
     right: 0;
     background: rgba(253, 246, 236, 0.98);
@@ -1372,13 +1373,15 @@ h1, h2, h3 {
     gap: 0.25rem;
     border-bottom: 1px solid var(--border);
     box-shadow: 0 8px 24px rgba(58, 50, 40, 0.12);
-    transform: translateY(-110%);
+    /* fermé : remonter de 100% de sa propre hauteur depuis y=0 — garantit que tout le panel est hors écran */
+    transform: translateY(-100%);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 999;
     overflow-y: auto;
     max-height: calc(100vh - var(--nav-height));
   }
-  .nav-links.open { transform: translateY(0); }
+  /* ouvert : glisse jusqu'à juste en dessous de la barre de navigation */
+  .nav-links.open { transform: translateY(var(--nav-height)); }
   .nav-link {
     padding: 0.85rem 1rem;
     font-size: 0.95rem;
@@ -1397,9 +1400,8 @@ h1, h2, h3 {
   .timeline-time { width: 75px; font-size: 1rem; }
   .hero-floral  { width: 120px; }
 
-  /* Galerie : 2 colonnes, images plafonnées */
-  .gallery-grid { columns: 2; column-gap: 0.75rem; }
-  .gallery-img  { max-height: 300px; object-fit: cover; }
+  /* Galerie : gap réduit sur tablette */
+  .gallery-grid { gap: 0.5rem; }
 
   /* Textes */
   .section-title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); }
@@ -1427,9 +1429,8 @@ h1, h2, h3 {
   .section         { padding: 3.5rem 0; }
   .container       { padding: 0 1rem; }
 
-  /* Galerie : 1 colonne, images compactes */
-  .gallery-grid { columns: 1; }
-  .gallery-img  { max-height: 260px; object-fit: cover; }
+  /* Galerie : gap plus serré sur mobile */
+  .gallery-grid { gap: 0.3rem; }
 
   /* Lieux */
   .lieux-grid         { grid-template-columns: 1fr; }
