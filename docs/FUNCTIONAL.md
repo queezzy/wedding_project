@@ -48,10 +48,11 @@ Le site est un **espace privé one-page** destiné exclusivement aux invités du
 └─────────────────────────────────────────┘
 ```
 
-- **Un seul code** partagé pour tous les invités (simple, pas de comptes individuels).
-- Le code est défini par la variable d'environnement `SITE_PASSWORD`.
-- Après validation : cookie de session **valable 30 jours** — l'invité n'a pas à ressaisir le code à chaque visite.
-- Si le code est incorrect : message d'erreur affiché sur place, sans redirection.
+- **Code individuel** par invité — chaque invité reçoit un code unique (ex. : `MARTIN2026`).
+- Les invités sont **pré-enregistrés dans la base de données** par les mariés via le tableau de bord admin avant la mise en ligne.
+- Le code est comparé en base de données (table `invitees`). Il identifie l'invité et pré-remplit son formulaire RSVP.
+- Après validation : cookie de session **valable 30 jours** — l'invité n'a pas à ressaisir le code à chaque visite.
+- Si le code est incorrect ou inexistant : message d'erreur affiché sur place, sans redirection.
 
 ### 2.2 Accès admin
 
@@ -160,33 +161,37 @@ Lien de déconnexion discret en bas de page.
 ```mermaid
 flowchart TD
     A([Invité ouvre le lien]) --> B{Cookie session\nvalide ?}
-    B -- Non --> C[Page /login\nSaisie du code]
-    C --> D{Code correct ?}
+    B -- Non --> C[Page /login\nSaisie du code personnel]
+    C --> D{Code trouvé\nen base de données ?}
     D -- Non --> E[Erreur affichée\nRester sur /login]
-    D -- Oui --> F[Cookie 30 jours\nposé]
+    D -- Oui --> F[session invitee_id posé\ncookie 30 jours]
     B -- Oui --> G
     F --> G[Page principale\none-page]
-    G --> H[Parcourt les sections]
-    H --> I[Section RSVP]
-    I --> J[Remplit le formulaire]
-    J --> K[Envoi fetch POST /api/rsvp]
-    K --> L[Écran de confirmation\n+ token d'édition affiché]
+    G --> H[Section RSVP :\nblocks partenaire/enfants\nvisibles selon profil]
+    H --> I{RSVP déjà envoyé ?}
+    I -- Oui --> J[Affiche résumé RSVP\nbouton Modifier]
+    I -- Non --> K[Remplit le formulaire\npersonnalosé]
+    K --> L[Envoi fetch POST /api/rsvp]
+    L --> M[Écran de confirmation\n+ token d'édition affiché]
 ```
 
 ### 4.2 Invité — modification de sa réponse
 
 ```mermaid
 flowchart TD
-    A([Invité a conservé\nle lien d'édition]) --> B[Ouvre /rsvp/edit/TOKEN]
-    B --> C{Session invité\nvalide ?}
-    C -- Non --> D[Redirigé vers /login]
-    D --> E[Reconnexion avec code]
-    E --> B
-    C -- Oui --> F[Chargement du RSVP\nexistant via GET]
-    F --> G[Formulaire pré-rempli]
-    G --> H[Modifications]
-    H --> I[Envoi POST /rsvp/edit/TOKEN]
-    I --> J[Confirmation de mise à jour]
+    A([Invité retourne\nsur le site]) --> B{Cookie session\nvalide ?}
+    B -- Non --> C[Saisit à nouveau son code]
+    C --> B
+    B -- Oui --> D[Section RSVP affiche\nle résumé existant]
+    D --> E[Clic sur Modifier]
+    E --> F[Formulaire pré-rempli]
+    F --> G[Modifications]
+    G --> H[Envoi POST /rsvp/edit/TOKEN]
+    H --> I[Page rechargée\navec nouveau résumé]
+
+    J([Via lien d'édition\n/rsvp/edit/TOKEN]) --> K{Session valide ?}
+    K -- Non --> C
+    K -- Oui --> F
 ```
 
 ### 4.3 Mariés — consultation des réponses
@@ -244,27 +249,32 @@ flowchart TD
 
 | Champ | Règle |
 |---|---|
-| Prénom / Nom | Requis pour chaque personne, non vide après trim |
-| Présence | Requis (radio Oui/Non), défaut Oui |
+| Présence invité principal | Requis (radio Oui/Non) |
 | Menu / Allergies | Masqués si Présence = Non |
+| Partenaire | Affiché uniquement si `invitee.has_partner = true` |
+| Enfants | Affiché uniquement si `invitee.max_children > 0` |
+| Nombre d'enfants | 0 ≤ n ≤ `invitee.max_children` (vérifié serveur + compteur JS) |
 | E-mail | Format email valide (HTML5 natif), optionnel |
-| Message | Max 1 000 caractères |
-| Allergies | Max 300 caractères |
+| Message | Max 1 000 caractères |
+| Allergies | Max 300 / 500 caractères selon le champ |
 | Chanson | Max 255 caractères |
-| Type invité | Contrôlé côté serveur : `adulte` / `partenaire` / `enfant` |
 
 ### 5.3 Comportement après envoi
 
 1. **Écran de confirmation** s'affiche (formulaire masqué)
 2. **Token d'édition** (UUID) affiché sous forme de lien complet : `https://…/rsvp/edit/<uuid>`
-3. Token stocké dans `localStorage` pour le bouton « Modifier ma réponse »
-4. L'invité doit **copier/sauvegarder ce lien** — aucun email n'est envoyé
+3. Token stocké dans `localStorage`
+4. L'invité peut **copier/sauvegarder ce lien** — aucun email n'est envoyé
+
+**À la visite suivante**, si le cookie de session est encore valide :
+- La section RSVP affiche directement le **résumé de la réponse déjà envoyée**
+- Un bouton « Modifier » rouvre le formulaire pré-rempli
 
 ### 5.4 Modification d'une réponse
 
-- Accès via le lien `/rsvp/edit/<token>`
-- La session invité doit être valide (cookie 30 j)
-- Toutes les données précédentes sont **remplacées** (les anciens invités du groupe sont supprimés et recréés)
+- Accès via le bouton « Modifier » sur la page, ou via le lien `/rsvp/edit/<token>`
+- La session invité doit être valide (cookie 30 j)
+- La réponse existante est **mise à jour** (pas de nouvelle ligne) ; `updated_at` est actualisé
 - Pas de date limite implémentée côté code (à gérer manuellement si nécessaire)
 
 ---
@@ -277,14 +287,18 @@ URL : `/admin/dashboard` (protégé par `ADMIN_PASSWORD`)
 
 | Indicateur | Calcul |
 |---|---|
-| Nombre de groupes / foyers | `COUNT(rsvp_groups)` |
-| Personnes présentes | `COUNT(rsvp_guests WHERE attending=true)` |
-| Personnes absentes | `COUNT(rsvp_guests WHERE attending=false)` |
-| Total réponses | Présents + Absents |
+| Invités enregistrés | `COUNT(invitees)` |
+| Réponses reçues | `COUNT(rsvp_responses)` |
+| En attente de réponse | `total_invited - rsvps_submitted` |
+| Personnes présentes | somme invités présents + partenaires présents + enfants présents |
 
-### 6.2 Tableau des réponses
+### 6.2 Gestion des invités
 
-Pour chaque groupe : date d'envoi, e-mail, liste des invités (avec type, présence, menu, allergies), indication hébergement, chanson suggérée, message.
+Les mariés gèrent les invités directement depuis le dashboard :
+
+- **Ajouter un invité** : formulaire avec code, prénom, nom, has_partner, noms du partenaire, max_children
+- **Tableau** : une ligne par invité avec code, partenaire, nb enfants max, statut RSVP, présences, menus, allergies, hébergement, chanson
+- **Supprimer** : supprime l'invité et sa réponse RSVP (cascade)
 
 ### 6.3 Export CSV
 
@@ -293,12 +307,15 @@ Route : `GET /admin/export.csv`
 Colonnes exportées :
 
 ```
-group_id | edit_token | email_contact | need_accommodation | song_suggestion |
-message | submitted_at | guest_first_name | guest_last_name | guest_type |
-attending | menu_choice | allergies
+invitee_id | code | first_name | last_name | has_partner |
+partner_first_name | partner_last_name | max_children |
+principal_attending | principal_menu | principal_allergies |
+partner_attending | partner_menu | partner_allergies |
+children_attending_count | children_menu | children_allergies |
+email_contact | need_accommodation | song_suggestion | message | submitted_at
 ```
 
-Une ligne par personne (invité principal + partenaire + chaque enfant). Format adapté pour import dans Excel / Google Sheets pour transmission au traiteur.
+Une ligne par invité. Format adapté pour import dans Excel / Google Sheets pour transmission au traiteur.
 
 ### 6.4 Modération livre d'or *(si activé)*
 
@@ -338,9 +355,9 @@ La section « Livre d'or » apparaît alors automatiquement sur la page principa
 
 ### Contenus obligatoires avant la mise en ligne
 
-- [ ] **`SITE_PASSWORD`** dans `.env` — code d'invitation final
+- [ ] **Enregistrer les invités** dans la base via `/admin/dashboard` (code + nom + partenaire + enfants)
 - [ ] **`ADMIN_PASSWORD`** dans `.env` — mot de passe admin final
-- [ ] **Menus adultes et enfants** : remplacer les `<option>` placeholder dans `templates/index.html` (sections `#main-menu`, `#partner-menu`, `#child-{n}-menu`)
+- [ ] **Menus adultes et enfants** : remplacer les `<option>` placeholder dans `templates/index.html`
 - [ ] **Lien cagnotte** : remplacer `href="#"` du bouton `#cagnotte-link` dans `templates/index.html`
 
 ### Contenus recommandés

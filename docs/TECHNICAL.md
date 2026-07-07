@@ -95,22 +95,23 @@ sequenceDiagram
     Session-->>Flask: Non (cookie absent)
     Flask-->>Invité: Redirect /login
 
-    Invité->>Flask: POST /verify-password (password=xxx)
-    Flask->>Flask: check_password_hash(xxx, SITE_PASSWORD_HASH)
-    Flask->>Session: Poser site_access=True (30 jours)
+    Invité->>Flask: POST /verify-password (code=xxx)
+    Flask->>DB: Invitee.query.filter_by(code=xxx).first()
+    DB-->>Flask: invitee (ou None si inconnu)
+    Flask->>Session: Poser invitee_id=invitee.id (30 jours)
     Flask-->>Invité: Redirect /
 
     Invité->>Flask: GET /
-    Flask->>Session: Vérifier site_access
+    Flask->>Session: Vérifier invitee_id
     Session-->>Flask: Oui
-    Flask->>DB: Query GuestbookEntry (si activé)
-    DB-->>Flask: []
-    Flask-->>Invité: index.html (rendu Jinja2)
+    Flask->>DB: db.session.get(Invitee, invitee_id) + rsvp existant
+    DB-->>Flask: invitee + RSVPResponse (si déjà soumis)
+    Flask-->>Invité: index.html (données invitee injectées via Jinja2)
 
     Invité->>Flask: POST /api/rsvp (JSON)
-    Flask->>Session: Vérifier site_access
-    Flask->>Flask: Valider payload
-    Flask->>DB: INSERT rsvp_groups + rsvp_guests
+    Flask->>Session: Vérifier invitee_id
+    Flask->>Flask: Valider payload (children_count ≤ max_children)
+    Flask->>DB: INSERT rsvp_responses (1 ligne)
     DB-->>Flask: OK + edit_token UUID
     Flask-->>Invité: {"edit_token": "uuid"} 201
 ```
@@ -120,10 +121,10 @@ sequenceDiagram
 ```mermaid
 graph LR
     A[Cookie navigateur\nFlask session] --> B{Clé ?}
-    B -->|site_access = True| C[Accès au site\ncookie 30 jours]
+    B -->|invitee_id = int| C[Accès au site\ncookie 30 jours]
     B -->|admin_access = True| D[Accès dashboard\ncookie de session]
     B -->|Aucune clé| E[Redirection /login]
-    C -->|Déconnexion| F[session.pop site_access]
+    C -->|Déconnexion| F[session.clear]
     D -->|Déconnexion| G[session.pop admin_access]
 ```
 
@@ -144,7 +145,7 @@ proj_test/
 ├── extensions.py       ← Instanciation db = SQLAlchemy(), migrate = Migrate()
 │                          Évite les imports circulaires
 │
-├── models.py           ← RSVPGroup, RSVPGuest, GuestbookEntry
+├── models.py           ← Invitee, RSVPResponse, GuestbookEntry
 │                          Chaque modèle expose .to_dict() pour la sérialisation JSON
 │
 ├── templates/
@@ -165,7 +166,8 @@ proj_test/
 │
 ├── migrations/         ← Fichiers Alembic générés par flask db migrate
 │   └── versions/
-│       └── 483d712fd35b_initial.py
+│       ├── 483d712fd35b_initial.py
+│       └── 6a1b6a26d1e9_invitees_and_rsvp_responses.py
 │
 ├── .env                ← Variables locales (NON versionné)
 ├── .env.example        ← Template (versionné)
@@ -188,8 +190,7 @@ def create_app(config_name=None):
     app.config.from_object(config_by_name[config_name])
     db.init_app(app)
     migrate.init_app(app, db)
-    # Hachage des mots de passe au démarrage
-    app.config["SITE_PASSWORD_HASH"]  = generate_password_hash(SITE_PASSWORD)
+    # Hachage du mot de passe admin au démarrage
     app.config["ADMIN_PASSWORD_HASH"] = generate_password_hash(ADMIN_PASSWORD)
     _register_routes(app)
     return app
@@ -200,7 +201,7 @@ app = create_app()  # instance module-level pour Gunicorn
 ### 4.2 Décorateurs d'authentification
 
 ```python
-@_require_site_access   # vérifie session["site_access"]
+@_require_site_access   # vérifie session["invitee_id"] (Invitee pré-enregistré)
 @_require_admin         # vérifie session["admin_access"]
 ```
 
@@ -222,9 +223,9 @@ FLASK_ENV=production  → ProductionConfig  (PostgreSQL, DEBUG=False)
 | Méthode | URL | Auth | Description |
 |---|---|---|---|
 | `GET` | `/login` | aucune | Page de saisie du code d'invitation |
-| `POST` | `/verify-password` | aucune | Valide le code, pose le cookie |
-| `GET` | `/logout` | session invité | Efface `site_access`, redirect `/login` |
-| `GET` | `/` | session invité | Page principale one-page |
+| `POST` | `/verify-password` | aucune | Vérifie le code dans `invitees`, pose `invitee_id` en session |
+| `GET` | `/logout` | session invité | Efface la session (`session.clear()`), redirect `/login` |
+| `GET` | `/` | session invité | Page principale one-page (invitee + rsvp injectés) |
 | `POST` | `/api/rsvp` | session invité | Soumet un RSVP → `201 {edit_token}` |
 | `GET` | `/rsvp/edit/<token>` | session invité | Récupère un RSVP existant → JSON |
 | `POST` | `/rsvp/edit/<token>` | session invité | Met à jour un RSVP existant |
@@ -236,7 +237,9 @@ FLASK_ENV=production  → ProductionConfig  (PostgreSQL, DEBUG=False)
 |---|---|---|---|
 | `GET` | `/admin` | aucune | Formulaire login admin |
 | `POST` | `/admin/login` | aucune | Valide `ADMIN_PASSWORD`, pose cookie admin |
-| `GET` | `/admin/dashboard` | session admin | Tableau de bord RSVP |
+| `GET` | `/admin/dashboard` | session admin | Tableau de bord RSVP + gestion invités |
+| `POST` | `/admin/invitees/add` | session admin | Ajoute un invité pré-enregistré |
+| `POST` | `/admin/invitees/<id>/delete` | session admin | Supprime un invité (et son RSVP en cascade) |
 | `GET` | `/admin/export.csv` | session admin | Télécharge le CSV complet |
 | `POST` | `/admin/approve-guestbook/<id>` | session admin | Approuve un message livre d'or |
 | `GET` | `/admin/logout` | session admin | Efface `admin_access` |
@@ -248,59 +251,41 @@ FLASK_ENV=production  → ProductionConfig  (PostgreSQL, DEBUG=False)
 ```json
 // Requête
 {
-  "guests": [
-    {
-      "first_name": "Sophie",
-      "last_name": "Martin",
-      "guest_type": "adulte",
-      "attending": true,
-      "menu_choice": "menu-adulte-standard",
-      "allergies": ""
-    },
-    {
-      "first_name": "Thomas",
-      "last_name": "Martin",
-      "guest_type": "partenaire",
-      "attending": true,
-      "menu_choice": "menu-adulte-vegetarien",
-      "allergies": "sans gluten"
-    },
-    {
-      "first_name": "Emma",
-      "last_name": "Martin",
-      "guest_type": "enfant",
-      "attending": true,
-      "menu_choice": "menu-enfant",
-      "allergies": ""
-    }
-  ],
-  "email_contact": "sophie.martin@email.com",
-  "song_suggestion": "Queen — Don't Stop Me Now",
-  "message": "Félicitations ! Nous avons hâte d'être là.",
-  "need_accommodation": true
+  "principal_attending":  true,
+  "principal_menu":       "menu-adulte-standard",
+  "principal_allergies":  "",
+  "partner_attending":    true,
+  "partner_menu":         "menu-adulte-vegetarien",
+  "partner_allergies":    "sans gluten",
+  "children_attending_count": 1,
+  "children_menu":        "menu-enfant",
+  "children_allergies":   "",
+  "email_contact":        "sophie.martin@email.com",
+  "song_suggestion":      "Queen — Don't Stop Me Now",
+  "message":              "Félicitations ! Nous avons hâte d'être là.",
+  "need_accommodation":   true
 }
 
 // Réponse 201
 { "edit_token": "550e8400-e29b-41d4-a716-446655440000" }
 
 // Réponse 400 (validation)
-{ "error": "Au moins une personne est requise." }
+{ "error": "children_count dépasse le maximum autorisé." }
+
+// Réponse 409 (déjà soumis)
+{ "error": "Un RSVP existe déjà. Utilisez le lien d'édition." }
 ```
 
-**GET `/rsvp/edit/<token>`**
+**POST `/rsvp/edit/<token>`**
+
+Même structure de payload que `POST /api/rsvp`. Met à jour `updated_at`.
 
 ```json
 // Réponse 200
-{
-  "id": 1,
-  "edit_token": "550e8400-...",
-  "email_contact": "sophie.martin@email.com",
-  "song_suggestion": "Queen — Don't Stop Me Now",
-  "message": "...",
-  "need_accommodation": true,
-  "submitted_at": "2026-08-15T10:23:45+00:00",
-  "guests": [...]
-}
+{ "message": "RSVP mis à jour." }
+
+// Réponse 403 (token ne correspond pas à l'invité en session)
+{ "error": "Accès refusé." }
 ```
 
 ---
@@ -372,11 +357,14 @@ static/css/style.css
 #### `rsvp.js`
 | Fonctionnalité | Mécanisme |
 |---|---|
-| Partenaire toggle | `removeAttribute('hidden')` / `setAttribute('hidden')` + `setRequired()` |
-| Enfant dynamique | `createElement`, injection innerHTML template, événement `click` sur `btn-remove` |
-| Attending toggle | Radio change → toggle `.attending-fields.hidden` (masque menu/allergies) |
-| Collecte données | Parcours DOM → objet `{guests: [...], ...}` |
-| Soumission | `fetch('/api/rsvp', {method: 'POST', body: JSON.stringify(payload)})` |
+| Données invité | Lues depuis `<script id="rsvp-init-data">` injecté par Jinja2 |
+| Mode affichage / édition | Bouton « Modifier » → masque `#rsvp-existing`, affiche form ; annuler inverse |
+| Partenaire block | Conditionnel Jinja2 (`has_partner`) — toujours rendu mais togglé par JS |
+| Compteur enfants | Boutons +/− sur `#children-count-input`, respecte `data-max` |
+| Attending toggle | Radio change → toggle `.attending-fields--hidden` (masque menu/allergies) |
+| Collecte données | `collectPayload()` → objet JSON depuis le formulaire |
+| Soumission nouvelle | `fetch('/api/rsvp', {method:'POST', body:JSON.stringify(payload)})` → `201` |
+| Soumission modification | `fetch('/rsvp/edit/${rsvp.edit_token}', {method:'POST', ...})` → reload |
 | Token édition | Affiché dans `#rsvp-edit-link`, stocké `localStorage.setItem('rsvp_token')` |
 
 ---
@@ -390,7 +378,7 @@ static/css/style.css
 | Mots de passe hachés | `werkzeug.security.generate_password_hash` (PBKDF2-SHA256 par défaut) au démarrage de l'app — jamais comparés en clair |
 | Cookie sécurisé | `SECRET_KEY` aléatoire requis (HMAC session Flask) |
 | Durée de session | `PERMANENT_SESSION_LIFETIME = 30 jours` (invités) ; session de navigateur (admin) |
-| Séparation invité/admin | Deux clés de session distinctes `site_access` et `admin_access` |
+| Séparation invité/admin | Deux clés de session distinctes `invitee_id` (int) et `admin_access` |
 
 ### 7.2 Protection des routes
 
@@ -432,7 +420,6 @@ Réponse si non autorisé  → redirect (pas de 401 qui révèle l'existence de 
 | Variable | Dev (défaut) | Prod (requis) | Description |
 |---|---|---|---|
 | `FLASK_SECRET_KEY` | `dev-key-insecure` | **Obligatoire** — 32+ octets aléatoires | Signature des cookies Flask |
-| `SITE_PASSWORD` | `mariage2026` | **Obligatoire** | Code d'invitation partagé |
 | `ADMIN_PASSWORD` | `admin2026` | **Obligatoire** | Accès `/admin` |
 | `DATABASE_URL` | `sqlite:///mariage_dev.db` | PostgreSQL Railway | URL de connexion DB |
 | `FLASK_ENV` | `development` | `production` | Sélection de la config |
@@ -457,8 +444,8 @@ Voir [DATABASE.md](DATABASE.md) pour le diagramme ER complet et la description d
 ### Résumé des modèles
 
 ```python
-RSVPGroup      # 1 enregistrement par foyer/famille
-  └─ RSVPGuest[]  # N enregistrements (invité principal + partenaire + enfants)
+Invitee        # 1 enregistrement par invité pré-enregistré par les mariés
+  └─ RSVPResponse  # 0 ou 1 réponse RSVP (relation 1:0..1)
 
 GuestbookEntry  # Indépendant (livre d'or)
 ```
@@ -467,7 +454,7 @@ GuestbookEntry  # Indépendant (livre d'or)
 
 - Clés primaires : `id INTEGER AUTO INCREMENT`
 - Timestamps : `DateTime(timezone=True)`, UTC, via `lambda: datetime.now(timezone.utc)`
-- FK avec cascade : `RSVPGroup → RSVPGuest` : `cascade="all, delete-orphan"`
+- FK avec cascade : `Invitee → RSVPResponse` : `cascade="all, delete-orphan"`
 - Sérialisation : chaque modèle expose `.to_dict()` pour les réponses JSON
 
 ---
@@ -524,7 +511,7 @@ if db_url.startswith("postgres://"):
 | **Flask + Jinja2** (rendu serveur) | React SPA + Flask API | Simplicité : un seul projet, pas de build step, SEO natif |
 | **Vanilla JS** | Alpine.js / HTMX | Zéro dépendance npm, maintenabilité simple |
 | **AOS** via CDN | framer-motion | framer-motion est une lib React ; AOS fonctionne sans build |
-| **Un seul code** pour tous | Comptes individuels | Simplicité pour les invités âgés, pas de gestion de comptes |
+| **Codes individuels** par invité | Un code partagé | Chaque invité est identifié → RSVP pré-peupé, données partenaire/enfants pré-définies |
 | **Token UUID** pour édition RSVP | E-mail avec lien | Pas d'infrastructure email requise, déploiement plus simple |
 | **SQLite en dev / PostgreSQL en prod** | PostgreSQL partout | Développement local sans serveur à installer |
 | **Hachage au démarrage** | Hachage à chaque requête | Performance : `generate_password_hash` est coûteux par design (PBKDF2) |

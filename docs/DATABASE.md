@@ -1,6 +1,6 @@
 # Documentation base de données — Site de mariage Joyce & Franck
 
-> **Version** : 1.0 — Juillet 2026  
+> **Version** : 2.0 — Juillet 2026  
 > ORM : SQLAlchemy 2.x · Migrations : Alembic (Flask-Migrate)
 
 ---
@@ -9,8 +9,8 @@
 
 1. [Diagramme entité-relation (ER)](#1-diagramme-entité-relation-er)
 2. [Tables](#2-tables)
-   - [rsvp_groups](#21-rsvp_groups)
-   - [rsvp_guests](#22-rsvp_guests)
+   - [invitees](#21-invitees)
+   - [rsvp_responses](#22-rsvp_responses)
    - [guestbook_entries](#23-guestbook_entries)
 3. [Relations](#3-relations)
 4. [Diagramme de classes ORM](#4-diagramme-de-classes-orm)
@@ -24,26 +24,36 @@
 
 ```mermaid
 erDiagram
-    RSVP_GROUPS {
-        integer  id              PK  "Auto-increment"
-        string   edit_token          "UUID v4, unique — lien d'édition"
-        string   email_contact       "nullable, max 254"
-        string   song_suggestion     "nullable, max 255"
-        text     message             "nullable"
-        boolean  need_accommodation  "défaut false"
-        datetime submitted_at        "UTC, auto"
-        datetime updated_at          "UTC, auto-update"
+    INVITEES {
+        integer  id               PK  "Auto-increment"
+        string   code                 "Code de connexion unique — saisi par l'invité"
+        string   first_name           "Prénom de l'invité"
+        string   last_name            "Nom de l'invité"
+        boolean  has_partner          "L'invité vient avec un(e) partenaire"
+        string   partner_first_name   "Prénom du/de la partenaire (nullable)"
+        string   partner_last_name    "Nom du/de la partenaire (nullable)"
+        integer  max_children         "Nombre max d'enfants autorisés (défaut 0)"
     }
 
-    RSVP_GUESTS {
-        integer  id          PK  "Auto-increment"
-        integer  group_id    FK  "→ rsvp_groups.id"
-        string   first_name      "not null, max 100"
-        string   last_name       "not null, max 100"
-        string   guest_type      "adulte | partenaire | enfant"
-        boolean  attending       "not null, défaut true"
-        string   menu_choice     "nullable, max 255"
-        string   allergies       "nullable, max 500"
+    RSVP_RESPONSES {
+        integer  id                       PK  "Auto-increment"
+        integer  invitee_id               FK  "→ invitees.id (unique)"
+        string   edit_token                   "UUID v4 — lien d'édition sécurisé"
+        boolean  principal_attending          "L'invité principal sera présent"
+        string   principal_menu               "Choix menu invité"
+        string   principal_allergies          "Allergies invité"
+        boolean  partner_attending            "Le/la partenaire sera présent(e) (nullable)"
+        string   partner_menu                 "Choix menu partenaire"
+        string   partner_allergies            "Allergies partenaire"
+        integer  children_attending_count     "Nb enfants qui viennent (0..max_children)"
+        string   children_menu                "Menu enfants"
+        string   children_allergies           "Allergies enfants"
+        string   email_contact                "E-mail de contact (nullable)"
+        string   song_suggestion              "Suggestion de chanson"
+        text     message                      "Message aux mariés"
+        boolean  need_accommodation           "Besoin infos hébergement"
+        datetime submitted_at                 "UTC, auto"
+        datetime updated_at                   "UTC, auto-update"
     }
 
     GUESTBOOK_ENTRIES {
@@ -54,56 +64,62 @@ erDiagram
         boolean  approved         "défaut false"
     }
 
-    RSVP_GROUPS ||--o{ RSVP_GUESTS : "contient"
+    INVITEES ||--o| RSVP_RESPONSES : "répond (0 ou 1 fois)"
 ```
 
 ---
 
 ## 2. Tables
 
-### 2.1 `rsvp_groups`
+### 2.1 `invitees`
 
-Représente un **foyer ou groupe familial** qui répond à l'invitation. Une famille répond une seule fois (un groupe = une soumission de formulaire).
+Représente un **invité pré-enregistré** par les mariés avant l'ouverture du site. Chaque invité possède un code de connexion unique. Les informations sur le partenaire et le nombre d'enfants sont définies par les mariés au moment de l'enregistrement.
 
 | Colonne | Type | Contraintes | Description |
 |---|---|---|---|
 | `id` | INTEGER | PK, AUTO | Identifiant unique |
-| `edit_token` | VARCHAR(36) | UNIQUE, NOT NULL | UUID v4 généré à la création — sert de lien de modification sécurisé |
-| `email_contact` | VARCHAR(254) | NULL | E-mail optionnel de l'invité principal |
-| `song_suggestion` | VARCHAR(255) | NULL | Suggestion de chanson pour la soirée |
-| `message` | TEXT | NULL | Message optionnel aux mariés |
-| `need_accommodation` | BOOLEAN | NOT NULL, DEFAULT false | L'invité souhaite des infos hébergement |
-| `submitted_at` | TIMESTAMPTZ | NOT NULL | Date/heure d'envoi (UTC) |
-| `updated_at` | TIMESTAMPTZ | NOT NULL | Date/heure de dernière modification (UTC) |
+| `code` | VARCHAR(50) | UNIQUE, NOT NULL | Code de connexion personnel |
+| `first_name` | VARCHAR(100) | NOT NULL | Prénom de l'invité principal |
+| `last_name` | VARCHAR(100) | NOT NULL | Nom de l'invité principal |
+| `has_partner` | BOOLEAN | NOT NULL, DEFAULT false | L'invité peut indiquer la présence de son/sa partenaire |
+| `partner_first_name` | VARCHAR(100) | NULL | Prénom du/de la partenaire |
+| `partner_last_name` | VARCHAR(100) | NULL | Nom du/de la partenaire |
+| `max_children` | INTEGER | NOT NULL, DEFAULT 0 | Nombre max d'enfants que l'invité peut amener |
 
-**Index implicites** : `id` (PK), `edit_token` (UNIQUE)
+**Index** : `id` (PK), `code` (UNIQUE)
+
+**Propriétés calculées (Python)** : `full_name`, `partner_full_name`
 
 ---
 
-### 2.2 `rsvp_guests`
+### 2.2 `rsvp_responses`
 
-Représente **une personne individuelle** au sein d'un groupe RSVP. Un groupe contient au minimum 1 invité (l'invité principal) et peut en contenir davantage (partenaire + enfants).
+Représente la **réponse RSVP unique** d'un invité. Relation 1:1 avec `invitees`. La réponse est créée lors de la première soumission ; les modifications ultérieures mettent à jour le même enregistrement. Les noms des enfants ne sont **pas** enregistrés — seul le nombre est conservé.
 
 | Colonne | Type | Contraintes | Description |
 |---|---|---|---|
 | `id` | INTEGER | PK, AUTO | Identifiant unique |
-| `group_id` | INTEGER | FK → `rsvp_groups.id`, NOT NULL | Groupe d'appartenance |
-| `first_name` | VARCHAR(100) | NOT NULL | Prénom |
-| `last_name` | VARCHAR(100) | NOT NULL | Nom |
-| `guest_type` | VARCHAR(20) | NOT NULL | `adulte` \| `partenaire` \| `enfant` |
-| `attending` | BOOLEAN | NOT NULL, DEFAULT true | Présent au mariage |
-| `menu_choice` | VARCHAR(255) | NULL | Choix de menu sélectionné |
-| `allergies` | VARCHAR(500) | NULL | Allergies ou régime alimentaire |
+| `invitee_id` | INTEGER | FK → `invitees.id`, UNIQUE, NOT NULL | Invité propriétaire |
+| `edit_token` | VARCHAR(36) | UNIQUE, NOT NULL | UUID v4 — lien d'édition sécurisé |
+| `principal_attending` | BOOLEAN | NOT NULL | L'invité principal sera présent |
+| `principal_menu` | VARCHAR(255) | NULL | Menu de l'invité principal |
+| `principal_allergies` | VARCHAR(500) | NULL | Allergies de l'invité principal |
+| `partner_attending` | BOOLEAN | NULL | Le/la partenaire sera présent(e) (`null` si pas de partenaire) |
+| `partner_menu` | VARCHAR(255) | NULL | Menu du/de la partenaire |
+| `partner_allergies` | VARCHAR(500) | NULL | Allergies du/de la partenaire |
+| `children_attending_count` | INTEGER | NOT NULL, DEFAULT 0 | Nombre d'enfants présents (0 à `max_children`) |
+| `children_menu` | VARCHAR(255) | NULL | Menu pour les enfants |
+| `children_allergies` | VARCHAR(500) | NULL | Allergies des enfants |
+| `email_contact` | VARCHAR(254) | NULL | E-mail de contact |
+| `song_suggestion` | VARCHAR(255) | NULL | Suggestion de chanson |
+| `message` | TEXT | NULL | Message aux mariés |
+| `need_accommodation` | BOOLEAN | NOT NULL, DEFAULT false | Besoin infos hébergement |
+| `submitted_at` | TIMESTAMPTZ | NOT NULL | Date/heure de la première soumission (UTC) |
+| `updated_at` | TIMESTAMPTZ | NOT NULL | Date/heure de la dernière modification (UTC) |
 
-**Valeurs autorisées pour `guest_type`** (contrôle applicatif) :
+**Index** : `id` (PK), `invitee_id` (UNIQUE FK), `edit_token` (UNIQUE)
 
-```python
-RSVPGuest.TYPES = ("adulte", "partenaire", "enfant")
-```
-
-**Cascade** : `ON DELETE CASCADE` — la suppression d'un `RSVPGroup` supprime automatiquement tous ses `RSVPGuest` associés.
-
-**Index implicites** : `id` (PK), `group_id` (FK)
+**Contrainte** : `children_attending_count` ≤ `invitees.max_children` (vérification applicative)
 
 ---
 
@@ -130,16 +146,16 @@ Table du **livre d'or numérique**, activée après le mariage via la variable `
 
 ```mermaid
 graph TD
-    G["RSVPGroup\n(rsvp_groups)\nid · edit_token · email · ..."]
-    I["RSVPGuest\n(rsvp_guests)\nid · group_id · first_name · ..."]
+    INV["Invitee\n(invitees)\nid · code · first_name · last_name\nhas_partner · max_children"]
+    RSVP["RSVPResponse\n(rsvp_responses)\nid · invitee_id · edit_token\nprincipal_attending · partner_attending\nchildren_attending_count · ..."]
     GB["GuestbookEntry\n(guestbook_entries)\nid · author_name · message · ..."]
 
-    G -- "1:N\ncascade delete" --> I
-    G -. "Indépendant" .- GB
+    INV -- "1:0..1\ncascade delete" --> RSVP
+    INV -. "Indépendant" .- GB
 ```
 
-- **RSVPGroup → RSVPGuest** : relation un-à-plusieurs. Lors d'une modification RSVP, **tous les invités du groupe sont supprimés puis recréés** (stratégie replace-all) pour simplifier la logique de mise à jour.
-- **GuestbookEntry** : entité indépendante, sans relation avec RSVP.
+- **Invitee → RSVPResponse** : relation un-à-zéro-ou-un. Chaque invité peut avoir au maximum une réponse RSVP. La suppression d'un `Invitee` supprime automatiquement sa `RSVPResponse` (cascade).
+- **GuestbookEntry** : entité indépendante, sans relation avec les invités.
 
 ---
 
@@ -147,29 +163,40 @@ graph TD
 
 ```mermaid
 classDiagram
-    class RSVPGroup {
+    class Invitee {
         +int id
+        +str code
+        +str first_name
+        +str last_name
+        +bool has_partner
+        +str partner_first_name
+        +str partner_last_name
+        +int max_children
+        +RSVPResponse rsvp
+        +full_name() str
+        +partner_full_name() str
+        +to_dict() dict
+    }
+
+    class RSVPResponse {
+        +int id
+        +int invitee_id
         +str edit_token
+        +bool principal_attending
+        +str principal_menu
+        +str principal_allergies
+        +bool partner_attending
+        +str partner_menu
+        +str partner_allergies
+        +int children_attending_count
+        +str children_menu
+        +str children_allergies
         +str email_contact
         +str song_suggestion
         +str message
         +bool need_accommodation
         +datetime submitted_at
         +datetime updated_at
-        +List~RSVPGuest~ guests
-        +to_dict() dict
-    }
-
-    class RSVPGuest {
-        +int id
-        +int group_id
-        +str first_name
-        +str last_name
-        +str guest_type
-        +bool attending
-        +str menu_choice
-        +str allergies
-        +TYPES tuple$
         +to_dict() dict
     }
 
@@ -181,7 +208,7 @@ classDiagram
         +bool approved
     }
 
-    RSVPGroup "1" --> "0..*" RSVPGuest : contient
+    Invitee "1" --> "0..1" RSVPResponse : répond
 ```
 
 ---
@@ -191,28 +218,38 @@ classDiagram
 > Généré automatiquement par Flask-Migrate. Voici le DDL équivalent pour référence.
 
 ```sql
--- Table des groupes RSVP
-CREATE TABLE rsvp_groups (
-    id                 INTEGER       PRIMARY KEY AUTOINCREMENT,
-    edit_token         VARCHAR(36)   NOT NULL UNIQUE,
-    email_contact      VARCHAR(254),
-    song_suggestion    VARCHAR(255),
-    message            TEXT,
-    need_accommodation BOOLEAN       NOT NULL DEFAULT FALSE,
-    submitted_at       TIMESTAMP     NOT NULL,
-    updated_at         TIMESTAMP     NOT NULL
+-- Table des invités pré-enregistrés
+CREATE TABLE invitees (
+    id                  INTEGER       PRIMARY KEY AUTOINCREMENT,
+    code                VARCHAR(50)   NOT NULL UNIQUE,
+    first_name          VARCHAR(100)  NOT NULL,
+    last_name           VARCHAR(100)  NOT NULL,
+    has_partner         BOOLEAN       NOT NULL DEFAULT FALSE,
+    partner_first_name  VARCHAR(100),
+    partner_last_name   VARCHAR(100),
+    max_children        INTEGER       NOT NULL DEFAULT 0
 );
 
--- Table des invités individuels
-CREATE TABLE rsvp_guests (
-    id           INTEGER      PRIMARY KEY AUTOINCREMENT,
-    group_id     INTEGER      NOT NULL REFERENCES rsvp_groups(id) ON DELETE CASCADE,
-    first_name   VARCHAR(100) NOT NULL,
-    last_name    VARCHAR(100) NOT NULL,
-    guest_type   VARCHAR(20)  NOT NULL DEFAULT 'adulte',
-    attending    BOOLEAN      NOT NULL DEFAULT TRUE,
-    menu_choice  VARCHAR(255),
-    allergies    VARCHAR(500)
+-- Table des réponses RSVP (1:1 avec invitees)
+CREATE TABLE rsvp_responses (
+    id                       INTEGER       PRIMARY KEY AUTOINCREMENT,
+    invitee_id               INTEGER       NOT NULL UNIQUE REFERENCES invitees(id) ON DELETE CASCADE,
+    edit_token               VARCHAR(36)   NOT NULL UNIQUE,
+    principal_attending      BOOLEAN       NOT NULL,
+    principal_menu           VARCHAR(255),
+    principal_allergies      VARCHAR(500),
+    partner_attending        BOOLEAN,
+    partner_menu             VARCHAR(255),
+    partner_allergies        VARCHAR(500),
+    children_attending_count INTEGER       NOT NULL DEFAULT 0,
+    children_menu            VARCHAR(255),
+    children_allergies       VARCHAR(500),
+    email_contact            VARCHAR(254),
+    song_suggestion          VARCHAR(255),
+    message                  TEXT,
+    need_accommodation       BOOLEAN       NOT NULL DEFAULT FALSE,
+    submitted_at             TIMESTAMP     NOT NULL,
+    updated_at               TIMESTAMP     NOT NULL
 );
 
 -- Livre d'or
@@ -224,8 +261,10 @@ CREATE TABLE guestbook_entries (
     approved     BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
--- Index pour les performances
-CREATE INDEX ix_rsvp_guests_group_id ON rsvp_guests(group_id);
+-- Index
+CREATE UNIQUE INDEX uq_invitees_code   ON invitees(code);
+CREATE UNIQUE INDEX uq_rsvp_invitee_id ON rsvp_responses(invitee_id);
+CREATE UNIQUE INDEX uq_rsvp_edit_token ON rsvp_responses(edit_token);
 ```
 
 ---
@@ -235,65 +274,78 @@ CREATE INDEX ix_rsvp_guests_group_id ON rsvp_guests(group_id);
 ### 6.1 Statistiques globales
 
 ```sql
--- Nombre de groupes ayant répondu
-SELECT COUNT(*) AS total_groups FROM rsvp_groups;
+-- Invités enregistrés
+SELECT COUNT(*) AS total_invited FROM invitees;
 
--- Personnes présentes / absentes
+-- Réponses RSVP reçues
+SELECT COUNT(*) AS rsvps_submitted FROM rsvp_responses;
+
+-- Personnes présentes (invités principaux + partenaires + enfants)
 SELECT
-    SUM(CASE WHEN attending = TRUE  THEN 1 ELSE 0 END) AS attending,
-    SUM(CASE WHEN attending = FALSE THEN 1 ELSE 0 END) AS declined
-FROM rsvp_guests;
-
--- Répartition par type d'invité
-SELECT guest_type, COUNT(*) AS total
-FROM rsvp_guests
-GROUP BY guest_type;
+    SUM(CASE WHEN principal_attending = TRUE THEN 1 ELSE 0 END)
+  + SUM(CASE WHEN partner_attending  = TRUE THEN 1 ELSE 0 END)
+  + SUM(children_attending_count)
+AS total_attending
+FROM rsvp_responses;
 ```
 
 ### 6.2 Liste complète pour le traiteur
 
 ```sql
--- Toutes les personnes présentes avec leur menu
-SELECT
-    g.submitted_at,
-    g.email_contact,
-    gu.first_name,
-    gu.last_name,
-    gu.guest_type,
-    gu.menu_choice,
-    gu.allergies
-FROM rsvp_groups g
-JOIN rsvp_guests gu ON gu.group_id = g.id
-WHERE gu.attending = TRUE
-ORDER BY g.submitted_at, gu.guest_type;
+-- Invités principaux présents
+SELECT i.first_name, i.last_name,
+       r.principal_menu AS menu, r.principal_allergies AS allergies,
+       'invité principal' AS role
+FROM invitees i
+JOIN rsvp_responses r ON r.invitee_id = i.id
+WHERE r.principal_attending = TRUE
+
+UNION ALL
+
+-- Partenaires présents
+SELECT i.partner_first_name, i.partner_last_name,
+       r.partner_menu, r.partner_allergies, 'partenaire'
+FROM invitees i
+JOIN rsvp_responses r ON r.invitee_id = i.id
+WHERE i.has_partner = TRUE AND r.partner_attending = TRUE
+
+ORDER BY last_name, first_name;
 ```
 
 ### 6.3 Besoins d'hébergement
 
 ```sql
-SELECT
-    g.email_contact,
-    COUNT(gu.id) AS nb_personnes
-FROM rsvp_groups g
-JOIN rsvp_guests gu ON gu.group_id = g.id
-WHERE g.need_accommodation = TRUE
-  AND gu.attending = TRUE
-GROUP BY g.id, g.email_contact;
+SELECT i.first_name, i.last_name, r.email_contact, r.children_attending_count
+FROM invitees i
+JOIN rsvp_responses r ON r.invitee_id = i.id
+WHERE r.need_accommodation = TRUE
+ORDER BY i.last_name;
 ```
 
 ### 6.4 Suggestions de chansons
 
 ```sql
-SELECT song_suggestion, submitted_at
-FROM rsvp_groups
-WHERE song_suggestion IS NOT NULL
-ORDER BY submitted_at;
+SELECT i.first_name, i.last_name, r.song_suggestion, r.submitted_at
+FROM invitees i
+JOIN rsvp_responses r ON r.invitee_id = i.id
+WHERE r.song_suggestion IS NOT NULL
+ORDER BY r.submitted_at;
 ```
 
-### 6.5 Récupérer un groupe par token (édition)
+### 6.5 Invités en attente de réponse
 
 ```sql
-SELECT * FROM rsvp_groups WHERE edit_token = '550e8400-e29b-41d4-a716-446655440000';
+SELECT i.first_name, i.last_name, i.code
+FROM invitees i
+LEFT JOIN rsvp_responses r ON r.invitee_id = i.id
+WHERE r.id IS NULL
+ORDER BY i.last_name;
+```
+
+### 6.6 Récupérer une réponse par token (édition)
+
+```sql
+SELECT * FROM rsvp_responses WHERE edit_token = '550e8400-e29b-41d4-a716-446655440000';
 ```
 
 ---
@@ -334,20 +386,21 @@ flowchart LR
     F --> G[Railway : flask db upgrade\nautomatique au démarrage]
 ```
 
-### Migration initiale (référence)
+### Historique des migrations
 
-Fichier : `migrations/versions/483d712fd35b_initial.py`
-
-Crée les 3 tables : `rsvp_groups`, `rsvp_guests`, `guestbook_entries`.
+| Révision | Message | Description |
+|---|---|---|
+| `483d712fd35b` | `initial` | Crée `rsvp_groups`, `rsvp_guests`, `guestbook_entries` |
+| `6a1b6a26d1e9` | `invitees_and_rsvp_responses` | Supprime les anciennes tables, crée `invitees` et `rsvp_responses` |
 
 ### Ajout d'une colonne (exemple)
 
 ```python
-# Dans models.py, ajouter à RSVPGroup :
+# Dans models.py, ajouter à Invitee :
 dietary_preference = db.Column(db.String(100), nullable=True)
 
 # Puis :
-# flask db migrate -m "add dietary_preference to rsvp_guests"
+# flask db migrate -m "add dietary_preference to invitees"
 # flask db upgrade
 ```
 

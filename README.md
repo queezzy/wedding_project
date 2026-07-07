@@ -54,7 +54,6 @@ Variables obligatoires dans `.env` :
 | Variable | Exemple | Description |
 |---|---|---|
 | `FLASK_SECRET_KEY` | `openssl rand -hex 32` | Clé secrète Flask (sessions) |
-| `SITE_PASSWORD` | `mariage2026` | Code d'accès partagé avec les invités |
 | `ADMIN_PASSWORD` | `admin-secret` | Mot de passe du tableau de bord |
 | `DATABASE_URL` | `sqlite:///mariage_dev.db` | URL de connexion BDD |
 | `FLASK_ENV` | `development` | `development` ou `production` |
@@ -84,7 +83,6 @@ flask run
 3. Définir les variables d'environnement dans les **Settings > Variables** :
    ```
    FLASK_SECRET_KEY=<générer>
-   SITE_PASSWORD=<votre code>
    ADMIN_PASSWORD=<votre mdp admin>
    DATABASE_URL=<Railway fournit cette valeur automatiquement>
    FLASK_ENV=production
@@ -103,7 +101,7 @@ proj_test/
 ├── app.py                  ← Factory Flask + toutes les routes
 ├── config.py               ← DevelopmentConfig / ProductionConfig
 ├── extensions.py           ← SQLAlchemy + Flask-Migrate (init)
-├── models.py               ← RSVPGroup, RSVPGuest, GuestbookEntry
+├── models.py               ← Invitee, RSVPResponse, GuestbookEntry
 │
 ├── templates/
 │   ├── base.html           ← Layout : <head>, fonts, AOS CDN
