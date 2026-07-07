@@ -70,6 +70,7 @@ class RSVPResponse(db.Model):
 
     # Enfants — nombre uniquement, pas de noms
     children_attending_count = db.Column(db.Integer, default=0, nullable=False)
+    children_ages = db.Column(db.String(300), nullable=True)   # Ex : "4 ans, 7 ans"
     children_menu = db.Column(db.String(255), nullable=True)
     children_allergies = db.Column(db.String(500), nullable=True)
 
@@ -102,6 +103,7 @@ class RSVPResponse(db.Model):
             "partner_menu": self.partner_menu,
             "partner_allergies": self.partner_allergies,
             "children_attending_count": self.children_attending_count,
+            "children_ages": self.children_ages,
             "children_menu": self.children_menu,
             "children_allergies": self.children_allergies,
             "email_contact": self.email_contact,

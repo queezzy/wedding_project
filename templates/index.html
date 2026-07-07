@@ -34,7 +34,7 @@
   <div class="hero-content">
     <p class="hero-eyebrow" data-aos="fade-down" data-aos-duration="800">Nous nous marions</p>
     <h1 class="hero-names" data-aos="fade-up" data-aos-duration="900" data-aos-delay="100">
-      Joyce Maïssa<br /><span class="hero-amp">&amp;</span><br />Franck Quentin
+      Joyce<br /><span class="hero-amp">&amp;</span><br />Franck Quentin
     </h1>
     <p class="hero-date" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
       19 · 09 · 2026
@@ -603,10 +603,10 @@
           <div class="field-row attending-fields" id="children-attending-fields">
             <div class="field-group field-group--full">
               <label for="children-ages">Âges des enfants présents</label>
-              <input type="text" id="children-ages" name="children_allergies"
+              <input type="text" id="children-ages" name="children_ages"
                 placeholder="Ex : 4 ans, 7 ans, 11 ans"
                 maxlength="300"
-                value="{{ rsvp.children_allergies or '' if rsvp else '' }}" />
+                value="{{ rsvp.children_ages or '' if rsvp else '' }}" />
               <span class="field-hint">Indiquez l'âge de chaque enfant, séparés par des virgules.</span>
             </div>
           </div>

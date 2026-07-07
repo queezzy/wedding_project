@@ -140,7 +140,7 @@
             <td style="text-align:center">
               {% if r and inv.max_children > 0 %}
                 {{ r.children_attending_count }} / {{ inv.max_children }}
-                {% if r.children_menu %}<br/><small>{{ r.children_menu }}</small>{% endif %}
+                {% if r.children_ages %}<br/><small style="color:var(--text-muted)">{{ r.children_ages }}</small>{% endif %}
               {% else %}—{% endif %}
             </td>
             <td style="text-align:center">

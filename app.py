@@ -161,6 +161,7 @@ def _register_routes(app: Flask) -> None:
             partner_menu=data.get("partner_menu", "").strip() or None if invitee.has_partner else None,
             partner_allergies=data.get("partner_allergies", "").strip() or None if invitee.has_partner else None,
             children_attending_count=children_count,
+            children_ages=data.get("children_ages", "").strip() or None,
             children_menu=data.get("children_menu", "").strip() or None,
             children_allergies=data.get("children_allergies", "").strip() or None,
             email_contact=data.get("email_contact", "").strip() or None,
@@ -205,6 +206,7 @@ def _register_routes(app: Flask) -> None:
             rsvp.partner_menu = data.get("partner_menu", "").strip() or None
             rsvp.partner_allergies = data.get("partner_allergies", "").strip() or None
         rsvp.children_attending_count = children_count
+        rsvp.children_ages = data.get("children_ages", "").strip() or None
         rsvp.children_menu = data.get("children_menu", "").strip() or None
         rsvp.children_allergies = data.get("children_allergies", "").strip() or None
         rsvp.email_contact = data.get("email_contact", "").strip() or None
@@ -337,7 +339,7 @@ def _register_routes(app: Flask) -> None:
             "rsvp_envoyé",
             "invité_présent", "menu_invité", "allergies_invité",
             "conjoint_présent", "menu_conjoint", "allergies_conjoint",
-            "nb_enfants_présents", "menu_enfants", "allergies_enfants",
+            "nb_enfants_présents", "ages_enfants",
             "hébergement", "chanson", "message", "email", "date_réponse",
         ])
         invitees = Invitee.query.order_by(Invitee.last_name).all()
@@ -356,8 +358,7 @@ def _register_routes(app: Flask) -> None:
                 r.partner_menu or "" if r else "",
                 r.partner_allergies or "" if r else "",
                 r.children_attending_count if r else "",
-                r.children_menu or "" if r else "",
-                r.children_allergies or "" if r else "",
+                r.children_ages or "" if r else "",
                 ("Oui" if r.need_accommodation else "Non") if r else "",
                 r.song_suggestion or "" if r else "",
                 (r.message or "").replace("\n", " ") if r else "",
