@@ -239,13 +239,24 @@
     <h2 class="section-title" data-aos="fade-up">Notre galerie</h2>
     <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
 
+    {% set photos = [
+      'IMG_0089.jpeg',
+      'IMG_0092.jpeg',
+      'IMG_0093.jpeg',
+      'IMG_0094.jpeg',
+      'IMG_0095.jpeg',
+      'IMG_0097.jpeg',
+      'IMG_0098.jpeg',
+      'IMG_0100.jpeg',
+      'IMG_0102.jpeg'
+    ] %}
     <div class="gallery-grid" id="gallery-grid">
-      {% for i in range(1, 10) %}
+      {% for photo in photos %}
       <div class="gallery-item" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
         <button class="gallery-thumb-btn" data-index="{{ loop.index0 }}" aria-label="Ouvrir la photo {{ loop.index }}">
           <img
-            src="https://picsum.photos/seed/wedding{{ i }}/600/{{ 400 + (i % 3) * 100 }}"
-            alt="Photo {{ i }} de Joyce et Franck"
+            src="{{ url_for('static', filename='images/gallerie/' + photo) }}"
+            alt="Photo {{ loop.index }} de Joyce et Franck"
             class="gallery-img"
             loading="lazy"
           />
@@ -590,23 +601,13 @@
             </div>
           </div>
           <div class="field-row attending-fields" id="children-attending-fields">
-            <div class="field-group">
-              <label for="children-menu">Menu pour les enfants</label>
-              <select id="children-menu" name="children_menu">
-                <option value="">— Sélectionner —</option>
-                <option value="menu-enfant"
-                  {% if rsvp and rsvp.children_menu == 'menu-enfant' %}selected{% endif %}>
-                  Menu enfant (à compléter)</option>
-                <option value="menu-enfant-vegetarien"
-                  {% if rsvp and rsvp.children_menu == 'menu-enfant-vegetarien' %}selected{% endif %}>
-                  Option végétarienne enfant</option>
-              </select>
-            </div>
-            <div class="field-group">
-              <label for="children-allergies">Allergies / régimes des enfants</label>
-              <input type="text" id="children-allergies" name="children_allergies"
-                placeholder="Ex : sans gluten…" maxlength="300"
+            <div class="field-group field-group--full">
+              <label for="children-ages">Âges des enfants présents</label>
+              <input type="text" id="children-ages" name="children_allergies"
+                placeholder="Ex : 4 ans, 7 ans, 11 ans"
+                maxlength="300"
                 value="{{ rsvp.children_allergies or '' if rsvp else '' }}" />
+              <span class="field-hint">Indiquez l'âge de chaque enfant, séparés par des virgules.</span>
             </div>
           </div>
         </div>

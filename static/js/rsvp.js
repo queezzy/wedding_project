@@ -105,7 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
       principal_allergies:  principalAttending
         ? (form.querySelector('[name="principal_allergies"]')?.value?.trim() || '') : '',
       children_attending_count: parseInt(countInput?.value || '0'),
-      children_menu:        form.querySelector('[name="children_menu"]')?.value || '',
       children_allergies:   form.querySelector('[name="children_allergies"]')?.value?.trim() || '',
       email_contact:        document.getElementById('email-contact')?.value?.trim() || '',
       song_suggestion:      document.getElementById('song-suggestion')?.value?.trim() || '',

@@ -1344,6 +1344,13 @@ h1, h2, h3 {
   color: var(--text-muted);
   font-style: italic;
 }
+.field-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  font-style: italic;
+}
 
 /* ============================================================
    RESPONSIVE — TABLET (≤ 900px)
