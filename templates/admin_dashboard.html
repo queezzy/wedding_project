@@ -10,84 +10,175 @@
 
 <main class="admin-main">
 
-  <!-- Stats -->
+  {# ── Flashs ── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="admin-flash admin-flash--{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {# ── Statistiques ── #}
   <div class="admin-stats">
     <div class="stat-card">
-      <span class="stat-value">{{ groups|length }}</span>
-      <span class="stat-label">groupes / foyers</span>
+      <span class="stat-value">{{ total_invited }}</span>
+      <span class="stat-label">invités enregistrés</span>
+    </div>
+    <div class="stat-card stat-card--green">
+      <span class="stat-value">{{ rsvps_submitted }}</span>
+      <span class="stat-label">réponses reçues</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ total_invited - rsvps_submitted }}</span>
+      <span class="stat-label">en attente de réponse</span>
     </div>
     <div class="stat-card stat-card--green">
       <span class="stat-value">{{ total_attending }}</span>
       <span class="stat-label">personnes présentes</span>
     </div>
-    <div class="stat-card stat-card--red">
-      <span class="stat-value">{{ total_declined }}</span>
-      <span class="stat-label">personnes absentes</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-value">{{ total_attending + total_declined }}</span>
-      <span class="stat-label">total réponses</span>
-    </div>
   </div>
 
-  <!-- Table RSVP -->
+  {# ── Ajouter un invité ── #}
   <section class="admin-section">
-    <h2>Réponses reçues</h2>
-    {% if groups %}
+    <h2>Ajouter un invité</h2>
+    <form method="POST" action="{{ url_for('admin_add_invitee') }}" class="admin-add-form">
+      <div class="admin-form-row">
+        <div class="field-group">
+          <label>Code d'invitation <span class="required">*</span></label>
+          <input type="text" name="code" required placeholder="Ex : MARTIN2026" maxlength="50" />
+        </div>
+        <div class="field-group">
+          <label>Prénom <span class="required">*</span></label>
+          <input type="text" name="first_name" required maxlength="100" />
+        </div>
+        <div class="field-group">
+          <label>Nom <span class="required">*</span></label>
+          <input type="text" name="last_name" required maxlength="100" />
+        </div>
+        <div class="field-group">
+          <label>Nb. max enfants</label>
+          <input type="number" name="max_children" value="0" min="0" max="10" style="width:80px" />
+        </div>
+      </div>
+      <div class="admin-form-row admin-form-row--partner">
+        <div class="field-group field-group--checkbox">
+          <label class="checkbox-label">
+            <input type="checkbox" name="has_partner" id="admin-has-partner"
+              onchange="document.getElementById('admin-partner-fields').style.display=this.checked?'flex':'none'" />
+            <span>A un(e) partenaire</span>
+          </label>
+        </div>
+        <div id="admin-partner-fields" style="display:none; gap:1rem; flex-wrap:wrap;">
+          <div class="field-group">
+            <label>Prénom du/de la partenaire</label>
+            <input type="text" name="partner_first_name" maxlength="100" />
+          </div>
+          <div class="field-group">
+            <label>Nom du/de la partenaire</label>
+            <input type="text" name="partner_last_name" maxlength="100" />
+          </div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">+ Ajouter l'invité</button>
+    </form>
+  </section>
+
+  {# ── Liste des invités ── #}
+  <section class="admin-section">
+    <h2>Liste des invités ({{ total_invited }})</h2>
+    {% if invitees %}
     <div class="admin-table-wrapper">
       <table class="admin-table">
         <thead>
           <tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>E-mail</th>
-            <th>Invités</th>
-            <th>Présents</th>
-            <th>Hébergement</th>
+            <th>Invité</th>
+            <th>Code</th>
+            <th>Partenaire</th>
+            <th>Enf. max</th>
+            <th>RSVP</th>
+            <th>Invité</th>
+            <th>Partenaire</th>
+            <th>Enfants</th>
+            <th>Héberg.</th>
             <th>Chanson</th>
-            <th>Message</th>
-            <th>Token édition</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {% for group in groups %}
+          {% for inv in invitees %}
+          {% set r = inv.rsvp %}
           <tr>
-            <td>{{ group.id }}</td>
-            <td>{{ group.submitted_at.strftime('%d/%m/%Y %H:%M') }}</td>
-            <td>{{ group.email_contact or '—' }}</td>
+            <td><strong>{{ inv.first_name }} {{ inv.last_name }}</strong></td>
+            <td><code>{{ inv.code }}</code></td>
             <td>
-              <ul class="admin-guest-list">
-                {% for guest in group.guests %}
-                <li>
-                  <strong>{{ guest.first_name }} {{ guest.last_name }}</strong>
-                  <span class="guest-type-badge guest-type-badge--{{ guest.guest_type }}">{{ guest.guest_type }}</span>
-                  {% if guest.attending %}
-                    <span class="badge-yes">✓ Oui</span>
-                  {% else %}
-                    <span class="badge-no">✗ Non</span>
-                  {% endif %}
-                  {% if guest.menu_choice %} · {{ guest.menu_choice }}{% endif %}
-                  {% if guest.allergies %} · <em>{{ guest.allergies }}</em>{% endif %}
-                </li>
-                {% endfor %}
-              </ul>
+              {% if inv.has_partner %}
+                {{ inv.partner_first_name or '—' }} {{ inv.partner_last_name or '' }}
+              {% else %}—{% endif %}
             </td>
-            <td>{{ group.guests | selectattr('attending') | list | length }}</td>
-            <td>{% if group.need_accommodation %}✓{% else %}—{% endif %}</td>
-            <td>{{ group.song_suggestion or '—' }}</td>
-            <td class="admin-message">{{ group.message or '—' }}</td>
-            <td><code>{{ group.edit_token }}</code></td>
+            <td style="text-align:center">{{ inv.max_children }}</td>
+            <td>
+              {% if r %}
+                <span class="badge-yes">✓ Oui</span>
+                <br/><small>{{ r.submitted_at.strftime('%d/%m %H:%M') }}</small>
+              {% else %}
+                <span style="color:var(--text-muted)">En attente</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r %}
+                {% if r.principal_attending %}<span class="badge-yes">✓</span>{% else %}<span class="badge-no">✗</span>{% endif %}
+                {% if r.principal_menu %}<br/><small>{{ r.principal_menu }}</small>{% endif %}
+                {% if r.principal_allergies %}<br/><em style="font-size:.75rem">{{ r.principal_allergies }}</em>{% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              {% if r and inv.has_partner %}
+                {% if r.partner_attending %}<span class="badge-yes">✓</span>{% else %}<span class="badge-no">✗</span>{% endif %}
+                {% if r.partner_menu %}<br/><small>{{ r.partner_menu }}</small>{% endif %}
+                {% if r.partner_allergies %}<br/><em style="font-size:.75rem">{{ r.partner_allergies }}</em>{% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td style="text-align:center">
+              {% if r and inv.max_children > 0 %}
+                {{ r.children_attending_count }} / {{ inv.max_children }}
+                {% if r.children_menu %}<br/><small>{{ r.children_menu }}</small>{% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td style="text-align:center">
+              {% if r %}{{ "✓" if r.need_accommodation else "—" }}{% else %}—{% endif %}
+            </td>
+            <td>
+              {% if r and r.song_suggestion %}
+                <small>{{ r.song_suggestion }}</small>
+              {% else %}—{% endif %}
+            </td>
+            <td>
+              <form method="POST" action="{{ url_for('admin_delete_invitee', invitee_id=inv.id) }}"
+                onsubmit="return confirm('Supprimer {{ inv.first_name }} {{ inv.last_name }} et sa réponse RSVP ?')">
+                <button type="submit" class="btn btn-outline btn-sm" style="border-color:var(--rose-dark);color:var(--rose-dark)">
+                  Supprimer
+                </button>
+              </form>
+            </td>
           </tr>
+          {% if r and r.message %}
+          <tr class="admin-message-row">
+            <td colspan="11">
+              <em style="font-size:.85rem;color:var(--text-muted)">
+                💬 {{ r.message }}
+              </em>
+            </td>
+          </tr>
+          {% endif %}
           {% endfor %}
         </tbody>
       </table>
     </div>
     {% else %}
-    <p class="admin-empty">Aucune réponse reçue pour l'instant.</p>
+    <p class="admin-empty">Aucun invité enregistré. Utilisez le formulaire ci-dessus pour en ajouter.</p>
     {% endif %}
   </section>
 
-  <!-- Livre d'or (si activé) -->
+  {# ── Livre d'or (si activé) ── #}
   {% if guestbook_enabled %}
   <section class="admin-section">
     <h2>Livre d'or — en attente de modération ({{ pending_entries|length }})</h2>

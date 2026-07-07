@@ -414,169 +414,259 @@
       Merci de nous confirmer votre présence avant le <strong>15 juillet 2026</strong>.
     </p>
 
-    <!-- Formulaire RSVP -->
-    <form id="rsvp-form" class="rsvp-form" data-aos="fade-up" data-aos-delay="150" novalidate>
+    {% if not invitee %}
+    <p class="rsvp-error-msg" data-aos="fade-up">
+      Session expirée. Veuillez <a href="{{ url_for('logout') }}">vous reconnecter</a>.
+    </p>
+    {% else %}
 
-      <!-- Invité principal -->
-      <div class="guest-block guest-block--main" id="guest-main">
-        <h3 class="guest-block-title">Vous</h3>
-        <div class="guest-fields">
-          <div class="field-row">
-            <div class="field-group">
-              <label for="main-firstname">Prénom <span class="required">*</span></label>
-              <input type="text" id="main-firstname" name="main_firstname" required autocomplete="given-name" />
-            </div>
-            <div class="field-group">
-              <label for="main-lastname">Nom <span class="required">*</span></label>
-              <input type="text" id="main-lastname" name="main_lastname" required autocomplete="family-name" />
-            </div>
+    {# Injecter les données pour rsvp.js #}
+    <script id="rsvp-init-data" type="application/json">
+      {{ {"invitee": invitee.to_dict(), "rsvp": rsvp.to_dict() if rsvp else none} | tojson }}
+    </script>
+
+    {# ── Vue résumé quand la réponse est déjà enregistrée ── #}
+    {% if rsvp %}
+    <div id="rsvp-existing" class="rsvp-existing" data-aos="fade-up">
+      <div class="rsvp-existing-inner">
+        <div class="rsvp-existing-icon">✅</div>
+        <h3>Votre réponse a bien été enregistrée.</h3>
+        <p>Vous pouvez la modifier jusqu'au <strong>15 juillet 2026</strong>.</p>
+        <div class="rsvp-summary">
+          <div class="rsvp-summary-item">
+            <span class="rsvp-summary-name">{{ invitee.first_name }} {{ invitee.last_name }}</span>
+            <span class="rsvp-summary-status {{ 'status-yes' if rsvp.principal_attending else 'status-no' }}">
+              {{ "Présent(e) ✓" if rsvp.principal_attending else "Absent(e) ✗" }}
+            </span>
           </div>
+          {% if invitee.has_partner %}
+          <div class="rsvp-summary-item">
+            <span class="rsvp-summary-name">
+              {{ invitee.partner_first_name or "Partenaire" }} {{ invitee.partner_last_name or "" }}
+            </span>
+            <span class="rsvp-summary-status {{ 'status-yes' if rsvp.partner_attending else 'status-no' }}">
+              {{ "Présent(e) ✓" if rsvp.partner_attending else "Absent(e) ✗" }}
+            </span>
+          </div>
+          {% endif %}
+          {% if invitee.max_children > 0 %}
+          <div class="rsvp-summary-item">
+            <span class="rsvp-summary-name">Enfants</span>
+            <span class="rsvp-summary-status {{ 'status-yes' if rsvp.children_attending_count > 0 else 'status-no' }}">
+              {{ rsvp.children_attending_count }} / {{ invitee.max_children }}
+              présent{{ "s" if rsvp.children_attending_count > 1 else "" }}
+            </span>
+          </div>
+          {% endif %}
+        </div>
+        <button type="button" class="btn btn-outline" id="rsvp-edit-btn">✏️ Modifier ma réponse</button>
+      </div>
+    </div>
+    {% endif %}
+
+    {# ── Formulaire RSVP ── #}
+    <form id="rsvp-form" class="rsvp-form{% if rsvp %} rsvp-form--hidden{% endif %}" data-aos="fade-up" data-aos-delay="150" novalidate>
+
+      {# Invité principal #}
+      <div class="guest-block guest-block--main">
+        <h3 class="guest-block-title">Vous — {{ invitee.first_name }} {{ invitee.last_name }}</h3>
+        <div class="guest-fields">
           <div class="field-row">
             <div class="field-group field-group--full">
               <label>Présence <span class="required">*</span></label>
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="main_attending" value="true" checked />
+                  <input type="radio" name="principal_attending" value="true"
+                    {% if not rsvp or rsvp.principal_attending %}checked{% endif %} />
                   <span>Oui, je serai là 🎉</span>
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="main_attending" value="false" />
+                  <input type="radio" name="principal_attending" value="false"
+                    {% if rsvp and not rsvp.principal_attending %}checked{% endif %} />
                   <span>Non, je ne pourrai pas venir</span>
                 </label>
               </div>
             </div>
           </div>
-          <div class="field-row attending-fields">
+          <div class="field-row attending-fields" id="principal-attending-fields">
             <div class="field-group">
-              <label for="main-menu">Choix du menu</label>
-              <select id="main-menu" name="main_menu">
+              <label for="principal-menu">Choix du menu</label>
+              <select id="principal-menu" name="principal_menu">
                 <option value="">— Sélectionner —</option>
-                <option value="menu-adulte-standard">Menu adulte (à compléter)</option>
-                <option value="menu-adulte-vegetarien">Option végétarienne</option>
-                <option value="menu-adulte-vegan">Option vegan</option>
+                <option value="menu-adulte-standard"
+                  {% if rsvp and rsvp.principal_menu == 'menu-adulte-standard' %}selected{% endif %}>
+                  Menu adulte (à compléter)</option>
+                <option value="menu-adulte-vegetarien"
+                  {% if rsvp and rsvp.principal_menu == 'menu-adulte-vegetarien' %}selected{% endif %}>
+                  Option végétarienne</option>
+                <option value="menu-adulte-vegan"
+                  {% if rsvp and rsvp.principal_menu == 'menu-adulte-vegan' %}selected{% endif %}>
+                  Option vegan</option>
               </select>
             </div>
             <div class="field-group">
-              <label for="main-allergies">Allergies / régime</label>
-              <input type="text" id="main-allergies" name="main_allergies" placeholder="Ex : sans gluten, noix…" maxlength="300" />
+              <label for="principal-allergies">Allergies / régime</label>
+              <input type="text" id="principal-allergies" name="principal_allergies"
+                placeholder="Ex : sans gluten, noix…" maxlength="300"
+                value="{{ rsvp.principal_allergies or '' if rsvp else '' }}" />
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Partenaire (optionnel) -->
-      <div class="partner-toggle-wrapper">
-        <button type="button" class="btn btn-outline btn-sm" id="add-partner">
-          + Ajouter mon / ma partenaire
-        </button>
-      </div>
-
-      <div class="guest-block guest-block--partner" id="guest-partner" hidden>
-        <div class="guest-block-header">
-          <h3 class="guest-block-title">Partenaire</h3>
-          <button type="button" class="btn-remove" id="remove-partner" aria-label="Retirer le partenaire">&times;</button>
-        </div>
+      {# Partenaire (seulement si l'invité en a un) #}
+      {% if invitee.has_partner %}
+      <div class="guest-block guest-block--partner">
+        <h3 class="guest-block-title">
+          {{ invitee.partner_first_name or "Votre partenaire" }}
+          {{ invitee.partner_last_name or "" }}
+        </h3>
         <div class="guest-fields">
-          <div class="field-row">
-            <div class="field-group">
-              <label for="partner-firstname">Prénom <span class="required">*</span></label>
-              <input type="text" id="partner-firstname" name="partner_firstname" autocomplete="off" />
-            </div>
-            <div class="field-group">
-              <label for="partner-lastname">Nom <span class="required">*</span></label>
-              <input type="text" id="partner-lastname" name="partner_lastname" autocomplete="off" />
-            </div>
-          </div>
           <div class="field-row">
             <div class="field-group field-group--full">
               <label>Présence <span class="required">*</span></label>
               <div class="radio-group">
                 <label class="radio-label">
-                  <input type="radio" name="partner_attending" value="true" checked />
+                  <input type="radio" name="partner_attending" value="true"
+                    {% if not rsvp or rsvp.partner_attending != False %}checked{% endif %} />
                   <span>Oui 🎉</span>
                 </label>
                 <label class="radio-label">
-                  <input type="radio" name="partner_attending" value="false" />
+                  <input type="radio" name="partner_attending" value="false"
+                    {% if rsvp and rsvp.partner_attending == False %}checked{% endif %} />
                   <span>Non</span>
                 </label>
               </div>
             </div>
           </div>
-          <div class="field-row attending-fields">
+          <div class="field-row attending-fields" id="partner-attending-fields">
             <div class="field-group">
               <label for="partner-menu">Choix du menu</label>
               <select id="partner-menu" name="partner_menu">
                 <option value="">— Sélectionner —</option>
-                <option value="menu-adulte-standard">Menu adulte (à compléter)</option>
-                <option value="menu-adulte-vegetarien">Option végétarienne</option>
-                <option value="menu-adulte-vegan">Option vegan</option>
+                <option value="menu-adulte-standard"
+                  {% if rsvp and rsvp.partner_menu == 'menu-adulte-standard' %}selected{% endif %}>
+                  Menu adulte (à compléter)</option>
+                <option value="menu-adulte-vegetarien"
+                  {% if rsvp and rsvp.partner_menu == 'menu-adulte-vegetarien' %}selected{% endif %}>
+                  Option végétarienne</option>
+                <option value="menu-adulte-vegan"
+                  {% if rsvp and rsvp.partner_menu == 'menu-adulte-vegan' %}selected{% endif %}>
+                  Option vegan</option>
               </select>
             </div>
             <div class="field-group">
               <label for="partner-allergies">Allergies / régime</label>
-              <input type="text" id="partner-allergies" name="partner_allergies" placeholder="Ex : sans gluten, noix…" maxlength="300" />
+              <input type="text" id="partner-allergies" name="partner_allergies"
+                placeholder="Ex : sans gluten, noix…" maxlength="300"
+                value="{{ rsvp.partner_allergies or '' if rsvp else '' }}" />
             </div>
           </div>
         </div>
       </div>
+      {% endif %}
 
-      <!-- Enfants (dynamiques) -->
-      <div id="children-container"></div>
-
-      <div class="children-toggle-wrapper">
-        <button type="button" class="btn btn-outline btn-sm" id="add-child">
-          + Ajouter un enfant
-        </button>
+      {# Enfants (seulement si l'invité peut en amener) #}
+      {% if invitee.max_children > 0 %}
+      <div class="guest-block guest-block--children">
+        <h3 class="guest-block-title">
+          Enfants <span class="guest-block-subtitle">({{ invitee.max_children }} attendu{{ "s" if invitee.max_children > 1 else "" }})</span>
+        </h3>
+        <div class="guest-fields">
+          <div class="field-row">
+            <div class="field-group field-group--full">
+              <label>Combien d'enfants seront présents ?</label>
+              <div class="children-counter">
+                <button type="button" class="counter-btn" id="children-minus" aria-label="Réduire">−</button>
+                <span id="children-count-display" class="counter-value">
+                  {{ rsvp.children_attending_count if rsvp else 0 }}
+                </span>
+                <button type="button" class="counter-btn" id="children-plus" aria-label="Augmenter">+</button>
+                <input type="hidden" id="children-count-input" name="children_attending_count"
+                  value="{{ rsvp.children_attending_count if rsvp else 0 }}"
+                  data-max="{{ invitee.max_children }}" />
+                <span class="counter-hint">sur {{ invitee.max_children }} possible{{ "s" if invitee.max_children > 1 else "" }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="field-row attending-fields" id="children-attending-fields">
+            <div class="field-group">
+              <label for="children-menu">Menu pour les enfants</label>
+              <select id="children-menu" name="children_menu">
+                <option value="">— Sélectionner —</option>
+                <option value="menu-enfant"
+                  {% if rsvp and rsvp.children_menu == 'menu-enfant' %}selected{% endif %}>
+                  Menu enfant (à compléter)</option>
+                <option value="menu-enfant-vegetarien"
+                  {% if rsvp and rsvp.children_menu == 'menu-enfant-vegetarien' %}selected{% endif %}>
+                  Option végétarienne enfant</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="children-allergies">Allergies / régimes des enfants</label>
+              <input type="text" id="children-allergies" name="children_allergies"
+                placeholder="Ex : sans gluten…" maxlength="300"
+                value="{{ rsvp.children_allergies or '' if rsvp else '' }}" />
+            </div>
+          </div>
+        </div>
       </div>
+      {% endif %}
 
-      <!-- Champs groupe -->
-      <div class="group-fields" data-aos="fade-up">
+      {# Champs communs au foyer #}
+      <div class="group-fields">
         <div class="field-group">
           <label for="email-contact">E-mail de contact (optionnel)</label>
-          <input type="email" id="email-contact" name="email_contact" placeholder="pour vous envoyer un rappel" autocomplete="email" maxlength="254" />
+          <input type="email" id="email-contact" name="email_contact"
+            placeholder="pour vous envoyer un rappel" autocomplete="email" maxlength="254"
+            value="{{ rsvp.email_contact or '' if rsvp else '' }}" />
         </div>
-
         <div class="field-group">
           <label for="song-suggestion">Suggérez une chanson pour la soirée 🎵 (optionnel)</label>
-          <input type="text" id="song-suggestion" name="song_suggestion" placeholder="Artiste — Titre" maxlength="255" />
+          <input type="text" id="song-suggestion" name="song_suggestion"
+            placeholder="Artiste — Titre" maxlength="255"
+            value="{{ rsvp.song_suggestion or '' if rsvp else '' }}" />
         </div>
-
         <div class="field-group">
           <label for="rsvp-message">Un message pour Joyce &amp; Franck (optionnel)</label>
-          <textarea id="rsvp-message" name="message" rows="3" maxlength="1000" placeholder="Vos mots nous toucheront…"></textarea>
+          <textarea id="rsvp-message" name="message" rows="3" maxlength="1000"
+            placeholder="Vos mots nous toucheront…">{{ rsvp.message or '' if rsvp else '' }}</textarea>
         </div>
-
         <div class="field-group field-group--checkbox">
           <label class="checkbox-label">
-            <input type="checkbox" id="need-accommodation" name="need_accommodation" />
+            <input type="checkbox" id="need-accommodation" name="need_accommodation"
+              {% if rsvp and rsvp.need_accommodation %}checked{% endif %} />
             <span>Je souhaite recevoir des informations sur les hébergements à proximité</span>
           </label>
         </div>
       </div>
 
       <div class="rsvp-submit">
+        {% if rsvp %}
+        <button type="button" class="btn btn-outline" id="rsvp-cancel-btn">Annuler</button>
+        {% endif %}
         <button type="submit" class="btn btn-primary btn-lg" id="rsvp-submit-btn">
-          Envoyer ma réponse
+          {% if rsvp %}Mettre à jour{% else %}Envoyer ma réponse{% endif %}
         </button>
       </div>
-
-      <p class="rsvp-deadline-note">Vous pourrez modifier votre réponse jusqu'au <strong>15 juillet 2026</strong> grâce au lien de modification qui vous sera affiché après l'envoi.</p>
+      <p class="rsvp-deadline-note">Vous pourrez modifier votre réponse jusqu'au <strong>15 juillet 2026</strong>.</p>
     </form>
 
-    <!-- Confirmation -->
+    {# Écran de confirmation (première soumission uniquement) #}
     <div id="rsvp-confirmation" class="rsvp-confirmation" hidden>
       <div class="rsvp-confirmation-inner">
         <div class="rsvp-confirmation-icon">💌</div>
         <h3>Merci ! Nous avons bien reçu votre réponse.</h3>
         <p>Joyce &amp; Franck sont impatients de vous retrouver le 19 septembre 2026.</p>
-        <div class="rsvp-edit-token-box" id="rsvp-edit-token-box">
+        <div class="rsvp-edit-token-box">
           <p>Pour modifier votre réponse, conservez ce lien :</p>
           <a href="" id="rsvp-edit-link" class="rsvp-edit-link"></a>
-          <p class="rsvp-edit-hint">Copiez-le ou ajoutez-le à vos favoris — il ne vous sera pas envoyé par e-mail.</p>
+          <p class="rsvp-edit-hint">Copiez-le ou ajoutez-le à vos favoris.</p>
         </div>
-        <button type="button" class="btn btn-outline" id="rsvp-modify-btn">Modifier ma réponse</button>
       </div>
     </div>
+
+    {% endif %}{# end if invitee #}
   </div>
 </section>
 

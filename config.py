@@ -7,7 +7,6 @@ load_dotenv()
 class Config:
     SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "dev-key-insecure")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SITE_PASSWORD = os.environ.get("SITE_PASSWORD", "")
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "")
     GUESTBOOK_ENABLED = os.environ.get("GUESTBOOK_ENABLED", "false").lower() == "true"
     # Cookie de session : 30 jours

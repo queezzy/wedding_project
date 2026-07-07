@@ -1,4 +1,220 @@
-/* rsvp.js — Formulaire dynamique + soumission + confirmation */
+/* rsvp.js — Formulaire RSVP pré-rempli depuis la session invité */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // --------------------------------------------------------
+  // Lire les données injectées par Jinja2
+  // --------------------------------------------------------
+  const initEl = document.getElementById('rsvp-init-data');
+  if (!initEl) return;
+
+  const { invitee, rsvp } = JSON.parse(initEl.textContent);
+
+  const form         = document.getElementById('rsvp-form');
+  const confirmation = document.getElementById('rsvp-confirmation');
+  const existingDiv  = document.getElementById('rsvp-existing');
+  const editBtn      = document.getElementById('rsvp-edit-btn');
+  const cancelBtn    = document.getElementById('rsvp-cancel-btn');
+  const submitBtn    = document.getElementById('rsvp-submit-btn');
+
+  if (!form) return;
+
+  // --------------------------------------------------------
+  // Afficher / masquer le formulaire (mode édition)
+  // --------------------------------------------------------
+  if (editBtn) {
+    editBtn.addEventListener('click', () => {
+      existingDiv.classList.add('rsvp-hidden');
+      form.classList.remove('rsvp-form--hidden');
+      form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      form.classList.add('rsvp-form--hidden');
+      if (existingDiv) {
+        existingDiv.classList.remove('rsvp-hidden');
+        existingDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  }
+
+  // --------------------------------------------------------
+  // Toggle champs menu/allergies selon présence (oui/non)
+  // --------------------------------------------------------
+  function setupAttendingToggle(radioName, fieldsId) {
+    const radios = form.querySelectorAll(`[name="${radioName}"]`);
+    const fields = document.getElementById(fieldsId);
+    if (!fields) return;
+
+    function update() {
+      const checked = form.querySelector(`[name="${radioName}"]:checked`);
+      fields.classList.toggle('attending-fields--hidden', checked?.value === 'false');
+    }
+    radios.forEach(r => r.addEventListener('change', update));
+    update();
+  }
+
+  setupAttendingToggle('principal_attending', 'principal-attending-fields');
+  if (invitee?.has_partner) {
+    setupAttendingToggle('partner_attending', 'partner-attending-fields');
+  }
+
+  // --------------------------------------------------------
+  // Compteur enfants +/−
+  // --------------------------------------------------------
+  const minusBtn    = document.getElementById('children-minus');
+  const plusBtn     = document.getElementById('children-plus');
+  const countDisp   = document.getElementById('children-count-display');
+  const countInput  = document.getElementById('children-count-input');
+  const childFields = document.getElementById('children-attending-fields');
+  const maxChildren = countInput ? parseInt(countInput.dataset.max || '0') : 0;
+
+  function refreshCounter(count) {
+    if (countDisp)  countDisp.textContent = count;
+    if (countInput) countInput.value = count;
+    if (minusBtn)   minusBtn.disabled = count <= 0;
+    if (plusBtn)    plusBtn.disabled  = count >= maxChildren;
+    if (childFields) childFields.classList.toggle('attending-fields--hidden', count === 0);
+  }
+
+  if (minusBtn && plusBtn && countInput) {
+    refreshCounter(parseInt(countInput.value || '0'));
+    minusBtn.addEventListener('click', () => {
+      const n = parseInt(countInput.value);
+      if (n > 0) refreshCounter(n - 1);
+    });
+    plusBtn.addEventListener('click', () => {
+      const n = parseInt(countInput.value);
+      if (n < maxChildren) refreshCounter(n + 1);
+    });
+  }
+
+  // --------------------------------------------------------
+  // Collecte du payload JSON
+  // --------------------------------------------------------
+  function collectPayload() {
+    const principalAttending =
+      form.querySelector('[name="principal_attending"]:checked')?.value === 'true';
+
+    const payload = {
+      principal_attending:  principalAttending,
+      principal_menu:       principalAttending
+        ? (form.querySelector('[name="principal_menu"]')?.value || '') : '',
+      principal_allergies:  principalAttending
+        ? (form.querySelector('[name="principal_allergies"]')?.value?.trim() || '') : '',
+      children_attending_count: parseInt(countInput?.value || '0'),
+      children_menu:        form.querySelector('[name="children_menu"]')?.value || '',
+      children_allergies:   form.querySelector('[name="children_allergies"]')?.value?.trim() || '',
+      email_contact:        document.getElementById('email-contact')?.value?.trim() || '',
+      song_suggestion:      document.getElementById('song-suggestion')?.value?.trim() || '',
+      message:              document.getElementById('rsvp-message')?.value?.trim() || '',
+      need_accommodation:   document.getElementById('need-accommodation')?.checked || false,
+    };
+
+    if (invitee?.has_partner) {
+      const partnerAttending =
+        form.querySelector('[name="partner_attending"]:checked')?.value === 'true';
+      payload.partner_attending  = partnerAttending;
+      payload.partner_menu       = partnerAttending
+        ? (form.querySelector('[name="partner_menu"]')?.value || '') : '';
+      payload.partner_allergies  = partnerAttending
+        ? (form.querySelector('[name="partner_allergies"]')?.value?.trim() || '') : '';
+    }
+
+    return payload;
+  }
+
+  // --------------------------------------------------------
+  // Soumission
+  // --------------------------------------------------------
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+
+    const isEdit = !!rsvp;
+    const url    = isEdit ? `/rsvp/edit/${rsvp.edit_token}` : '/api/rsvp';
+
+    submitBtn.disabled    = true;
+    submitBtn.textContent = 'Envoi en cours…';
+
+    try {
+      const res  = await fetch(url, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(collectPayload()),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Une erreur est survenue. Veuillez réessayer.');
+        submitBtn.disabled    = false;
+        submitBtn.textContent = isEdit ? 'Mettre à jour' : 'Envoyer ma réponse';
+        return;
+      }
+
+      if (isEdit) {
+        // Recharger la page pour afficher le résumé mis à jour
+        window.location.reload();
+      } else {
+        // Première soumission : afficher la confirmation + token
+        const editUrl  = `${window.location.origin}/rsvp/edit/${data.edit_token}`;
+        const editLink = document.getElementById('rsvp-edit-link');
+        if (editLink) { editLink.href = editUrl; editLink.textContent = editUrl; }
+        try { localStorage.setItem('rsvp_token', data.edit_token); } catch (_) {}
+        form.setAttribute('hidden', '');
+        confirmation.removeAttribute('hidden');
+        confirmation.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('Erreur réseau. Veuillez vérifier votre connexion et réessayer.');
+      submitBtn.disabled    = false;
+      submitBtn.textContent = isEdit ? 'Mettre à jour' : 'Envoyer ma réponse';
+    }
+  });
+
+  // --------------------------------------------------------
+  // Livre d'or (si activé)
+  // --------------------------------------------------------
+  const gbForm = document.getElementById('guestbook-form');
+  if (gbForm) {
+    gbForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const author  = document.getElementById('gb-name')?.value.trim()    || '';
+      const message = document.getElementById('gb-message')?.value.trim() || '';
+      if (!author || !message) return;
+      const btn = gbForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Envoi…';
+      try {
+        const res = await fetch('/api/guestbook', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ author_name: author, message }),
+        });
+        if (res.ok) {
+          gbForm.innerHTML =
+            '<p style="text-align:center;color:var(--sage-dark);font-weight:600;">' +
+            'Merci\u00a0! Votre message est en attente de mod\u00e9ration. 💛</p>';
+        } else {
+          const d = await res.json();
+          alert(d.error || 'Une erreur est survenue.');
+          btn.disabled = false;
+          btn.textContent = 'Laisser un message';
+        }
+      } catch (_) {
+        alert('Erreur réseau.');
+        btn.disabled = false;
+        btn.textContent = 'Laisser un message';
+      }
+    });
+  }
+
+});
+
 
 document.addEventListener('DOMContentLoaded', () => {
   const form         = document.getElementById('rsvp-form');
