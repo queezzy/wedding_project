@@ -1356,21 +1356,7 @@ h1, h2, h3 {
    RESPONSIVE — TABLET (≤ 900px)
    ============================================================ */
 @media (max-width: 900px) {
-  .lieux-grid  { grid-template-columns: 1fr 1fr; }
-  .gallery-grid { columns: 2; }
-  .admin-stats  { grid-template-columns: repeat(2, 1fr); }
-  .timeline::before { left: 90px; }
-  .timeline-time { width: 75px; font-size: 1rem; }
-  .hero-floral { width: 120px; }
-}
-
-/* ============================================================
-   RESPONSIVE — MOBILE (≤ 640px)
-   ============================================================ */
-@media (max-width: 640px) {
-  :root { --nav-height: 60px; }
-
-  /* Nav hamburger */
+  /* Nav : hamburger dès la tablette */
   .nav-hamburger { display: flex; }
   .nav-links {
     position: fixed;
@@ -1379,35 +1365,75 @@ h1, h2, h3 {
     right: 0;
     background: rgba(253, 246, 236, 0.98);
     backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     flex-direction: column;
     align-items: stretch;
     padding: 1rem 1.5rem 1.5rem;
     gap: 0.25rem;
     border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(58, 50, 40, 0.12);
     transform: translateY(-110%);
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 999;
+    overflow-y: auto;
+    max-height: calc(100vh - var(--nav-height));
   }
   .nav-links.open { transform: translateY(0); }
-  .nav-link { padding: 0.75rem 1rem; font-size: 0.9rem; }
-  .nav-link--cta { text-align: center; margin-left: 0; margin-top: 0.5rem; }
+  .nav-link {
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    border-radius: var(--radius-sm);
+  }
+  .nav-link--cta {
+    text-align: center;
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+
+  /* Layout */
+  .lieux-grid   { grid-template-columns: 1fr 1fr; }
+  .admin-stats  { grid-template-columns: repeat(2, 1fr); }
+  .timeline::before { left: 90px; }
+  .timeline-time { width: 75px; font-size: 1rem; }
+  .hero-floral  { width: 120px; }
+
+  /* Galerie : 2 colonnes, images plafonnées */
+  .gallery-grid { columns: 2; column-gap: 0.75rem; }
+  .gallery-img  { max-height: 300px; object-fit: cover; }
+
+  /* Textes */
+  .section-title { font-size: clamp(1.6rem, 3.5vw, 2.4rem); }
+  .hero-names    { font-size: clamp(2.4rem, 6vw, 4rem); }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE (≤ 640px)
+   ============================================================ */
+@media (max-width: 640px) {
+  :root { --nav-height: 60px; }
 
   /* Hero */
-  .hero-floral { display: none; }
-  .hero-names  { font-size: 2.5rem; }
-  .countdown   { gap: 0.25rem; }
-  .countdown-item { min-width: 56px; }
-  .countdown-value { font-size: 1.8rem; }
+  .hero-floral  { display: none; }
+  .hero-names   { font-size: clamp(2rem, 9vw, 2.8rem); }
+  .hero-date    { font-size: 1.1rem; letter-spacing: 0.08em; }
+  .hero-lieu    { font-size: 0.85rem; }
+  .countdown    { gap: 0.25rem; }
+  .countdown-item  { min-width: 56px; }
+  .countdown-value { font-size: 1.6rem; }
 
-  /* Sections */
-  .section { padding: 3.5rem 0; }
+  /* Textes généraux */
+  .section-title   { font-size: clamp(1.4rem, 7vw, 2rem); }
+  .section-ornament { letter-spacing: 0.25rem; }
+  .section         { padding: 3.5rem 0; }
+  .container       { padding: 0 1rem; }
+
+  /* Galerie : 1 colonne, images compactes */
+  .gallery-grid { columns: 1; }
+  .gallery-img  { max-height: 260px; object-fit: cover; }
 
   /* Lieux */
   .lieux-grid         { grid-template-columns: 1fr; }
   .hebergements-grid  { grid-template-columns: 1fr; }
-
-  /* Galerie */
-  .gallery-grid { columns: 1; }
 
   /* Dress code */
   .dresscode-palette { gap: 1rem; }
@@ -1421,12 +1447,16 @@ h1, h2, h3 {
   .timeline-content  { padding-left: 0; }
 
   /* RSVP */
-  .field-row { grid-template-columns: 1fr; }
-  .guest-block { padding: 1.25rem; }
+  .field-row    { grid-template-columns: 1fr; }
+  .guest-block  { padding: 1.25rem; }
   .group-fields { padding: 1.25rem; }
 
+  /* Boutons */
+  .btn    { font-size: 0.9rem; padding: 0.65rem 1.4rem; }
+  .btn-lg { font-size: 0.95rem; padding: 0.75rem 1.8rem; }
+
   /* Admin */
-  .admin-stats { grid-template-columns: 1fr 1fr; }
+  .admin-stats  { grid-template-columns: 1fr 1fr; }
   .admin-header { flex-direction: column; align-items: flex-start; }
-  .admin-main { padding: 1rem; }
+  .admin-main   { padding: 1rem; }
 }
