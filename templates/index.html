@@ -1,0 +1,636 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<!-- ========================================================
+     NAVIGATION
+======================================================== -->
+<header class="nav-wrapper" id="navbar">
+  <nav class="nav-inner">
+    <a href="#hero" class="nav-logo">J &amp; F</a>
+
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#histoire"  class="nav-link">Notre histoire</a></li>
+      <li><a href="#programme" class="nav-link">Programme</a></li>
+      <li><a href="#lieux"     class="nav-link">Lieux</a></li>
+      <li><a href="#galerie"   class="nav-link">Galerie</a></li>
+      <li><a href="#dresscode" class="nav-link">Dress code</a></li>
+      <li><a href="#cagnotte"  class="nav-link">Cadeau</a></li>
+      <li><a href="#faq"       class="nav-link">FAQ</a></li>
+      <li><a href="#rsvp"      class="nav-link nav-link--cta">RSVP</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- ========================================================
+     1. HERO
+======================================================== -->
+<section id="hero" class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow" data-aos="fade-down" data-aos-duration="800">Nous nous marions</p>
+    <h1 class="hero-names" data-aos="fade-up" data-aos-duration="900" data-aos-delay="100">
+      Joyce Maïssa<br /><span class="hero-amp">&amp;</span><br />Franck Quentin
+    </h1>
+    <p class="hero-date" data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
+      19 · 09 · 2026
+    </p>
+    <p class="hero-lieu" data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
+      Meaux, France
+    </p>
+
+    <!-- Compte à rebours -->
+    <div class="countdown" id="countdown" data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
+      <div class="countdown-item">
+        <span class="countdown-value" id="cd-days">—</span>
+        <span class="countdown-label">jours</span>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-item">
+        <span class="countdown-value" id="cd-hours">—</span>
+        <span class="countdown-label">heures</span>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-item">
+        <span class="countdown-value" id="cd-minutes">—</span>
+        <span class="countdown-label">minutes</span>
+      </div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-item">
+        <span class="countdown-value" id="cd-seconds">—</span>
+        <span class="countdown-label">secondes</span>
+      </div>
+    </div>
+
+    <a href="#rsvp" class="btn btn-primary hero-cta" data-aos="fade-up" data-aos-delay="500">Confirmer ma présence</a>
+  </div>
+
+  <!-- Fleurs décoratives SVG -->
+  <div class="hero-floral hero-floral--left" aria-hidden="true">
+    <svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="60" cy="80"  r="30" fill="rgba(242,184,198,0.35)"/>
+      <circle cx="100" cy="50" r="20" fill="rgba(181,201,183,0.35)"/>
+      <circle cx="40" cy="140" r="25" fill="rgba(189,213,228,0.30)"/>
+      <ellipse cx="80" cy="200" rx="15" ry="40" fill="rgba(181,201,183,0.25)" transform="rotate(-20 80 200)"/>
+      <ellipse cx="50" cy="250" rx="12" ry="35" fill="rgba(242,184,198,0.20)" transform="rotate(15 50 250)"/>
+      <circle cx="110" cy="300" r="18" fill="rgba(201,168,76,0.20)"/>
+    </svg>
+  </div>
+  <div class="hero-floral hero-floral--right" aria-hidden="true">
+    <svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="140" cy="80"  r="28" fill="rgba(242,184,198,0.35)"/>
+      <circle cx="100" cy="55"  r="22" fill="rgba(181,201,183,0.35)"/>
+      <circle cx="160" cy="150" r="20" fill="rgba(189,213,228,0.30)"/>
+      <ellipse cx="120" cy="210" rx="13" ry="38" fill="rgba(181,201,183,0.25)" transform="rotate(20 120 210)"/>
+      <ellipse cx="150" cy="260" rx="10" ry="32" fill="rgba(242,184,198,0.20)" transform="rotate(-15 150 260)"/>
+      <circle cx="90"  cy="310" r="16" fill="rgba(201,168,76,0.20)"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ========================================================
+     2. NOTRE HISTOIRE
+======================================================== -->
+<section id="histoire" class="section section--cream">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Notre histoire</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+    <div class="histoire-content" data-aos="fade-up" data-aos-delay="100">
+      <p class="histoire-text">
+        C'est lors d'une soirée que nos chemins se sont croisés pour la première fois. 
+        Un regard, un sourire, et quelque chose d'indéfinissable s'est mis en place. 
+        Depuis ce jour, nous construisons notre histoire ensemble — entre fous rires, 
+        voyages, petits bonheurs du quotidien et grands projets partagés.
+      </p>
+      <p class="histoire-text">
+        Après toutes ces années côte à côte, il était temps de rendre cet amour 
+        officiel devant ceux qui nous sont chers. Le 19 septembre 2026, nous dirons 
+        « oui » entourés de notre famille et de nos amis.
+      </p>
+      <p class="histoire-text histoire-text--italic">
+        — <em>Nous vous attendons avec impatience pour partager ce moment inoubliable.</em>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     3. PROGRAMME DU JOUR
+======================================================== -->
+<section id="programme" class="section section--white">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Programme du jour</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+    <div class="timeline">
+
+      <div class="timeline-item" data-aos="fade-right" data-aos-delay="0">
+        <div class="timeline-time">13h30</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <h3>Mariage civil</h3>
+          <p>Mairie de Meaux<br/><span class="timeline-address">Place Henri IV, 77100 Meaux</span></p>
+        </div>
+      </div>
+
+      <div class="timeline-item" data-aos="fade-right" data-aos-delay="100">
+        <div class="timeline-time">15h00</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <h3>Cérémonie religieuse</h3>
+          <p>Église Notre-Dame-du-Marché de Meaux<br/><span class="timeline-address">Place du Marché, 77100 Meaux</span></p>
+        </div>
+      </div>
+
+      <div class="timeline-item" data-aos="fade-right" data-aos-delay="200">
+        <div class="timeline-time">17h30</div>
+        <div class="timeline-dot"></div>
+        <div class="timeline-content">
+          <h3>Vin d'honneur</h3>
+          <p>Dans les jardins du Manoir</p>
+        </div>
+      </div>
+
+      <div class="timeline-item timeline-item--featured" data-aos="fade-right" data-aos-delay="300">
+        <div class="timeline-time">20h00</div>
+        <div class="timeline-dot timeline-dot--gold"></div>
+        <div class="timeline-content">
+          <h3>Soirée de mariage</h3>
+          <p>Manoir de Tigeaux<br/><span class="timeline-address">2 Rue de la Mare aux Fées, 77163 Tigeaux</span></p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     4. LIEUX & ACCÈS
+======================================================== -->
+<section id="lieux" class="section section--sage">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Lieux &amp; accès</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+
+    <div class="lieux-grid">
+
+      <div class="lieu-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="lieu-icon">🏛️</div>
+        <h3>Mairie de Meaux</h3>
+        <p>Place Henri IV<br/>77100 Meaux</p>
+        <a href="https://maps.google.com/?q=Mairie+de+Meaux,+Place+Henri+IV,+77100+Meaux" target="_blank" rel="noopener noreferrer" class="btn btn-outline">Voir sur la carte</a>
+      </div>
+
+      <div class="lieu-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="lieu-icon">⛪</div>
+        <h3>Église Notre-Dame-du-Marché</h3>
+        <p>Place du Marché<br/>77100 Meaux</p>
+        <a href="https://maps.google.com/?q=Eglise+Notre-Dame+du+Marche,+Meaux" target="_blank" rel="noopener noreferrer" class="btn btn-outline">Voir sur la carte</a>
+      </div>
+
+      <div class="lieu-card lieu-card--featured" data-aos="fade-up" data-aos-delay="200">
+        <div class="lieu-icon">🏰</div>
+        <h3>Manoir de Tigeaux</h3>
+        <p>2 Rue de la Mare aux Fées<br/>77163 Tigeaux</p>
+        <a href="https://maps.google.com/?q=Manoir+de+Tigeaux,+77163+Tigeaux" target="_blank" rel="noopener noreferrer" class="btn btn-outline">Voir sur la carte</a>
+      </div>
+
+    </div>
+
+    <!-- Hébergements -->
+    <div class="hebergements" data-aos="fade-up" data-aos-delay="100">
+      <h3 class="hebergements-title">Suggestions d'hébergement</h3>
+      <p class="hebergements-intro">Quelques adresses à proximité de Meaux et Tigeaux :</p>
+      <div class="hebergements-grid">
+        <div class="hebergement-item">
+          <span class="hebergement-type">Hôtel</span>
+          <strong>À compléter</strong>
+          <p>Adresse · Distance · Site web</p>
+        </div>
+        <div class="hebergement-item">
+          <span class="hebergement-type">Hôtel</span>
+          <strong>À compléter</strong>
+          <p>Adresse · Distance · Site web</p>
+        </div>
+        <div class="hebergement-item">
+          <span class="hebergement-type">Chambre d'hôtes</span>
+          <strong>À compléter</strong>
+          <p>Adresse · Distance · Site web</p>
+        </div>
+        <div class="hebergement-item">
+          <span class="hebergement-type">Chambre d'hôtes</span>
+          <strong>À compléter</strong>
+          <p>Adresse · Distance · Site web</p>
+        </div>
+      </div>
+      <p class="hebergements-note">Si vous souhaitez des informations sur les hébergements, cochez la case correspondante dans le formulaire RSVP.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     5. GALERIE PHOTOS
+======================================================== -->
+<section id="galerie" class="section section--cream">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Notre galerie</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+
+    <div class="gallery-grid" id="gallery-grid">
+      {% for i in range(1, 10) %}
+      <div class="gallery-item" data-aos="fade-up" data-aos-delay="{{ loop.index0 * 50 }}">
+        <button class="gallery-thumb-btn" data-index="{{ loop.index0 }}" aria-label="Ouvrir la photo {{ loop.index }}">
+          <img
+            src="https://picsum.photos/seed/wedding{{ i }}/600/{{ 400 + (i % 3) * 100 }}"
+            alt="Photo {{ i }} de Joyce et Franck"
+            class="gallery-img"
+            loading="lazy"
+          />
+          <div class="gallery-overlay"><span>&#10064;</span></div>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Galerie photo" hidden>
+    <button class="lightbox-close" id="lightbox-close" aria-label="Fermer">&times;</button>
+    <button class="lightbox-prev" id="lightbox-prev" aria-label="Photo précédente">&#8592;</button>
+    <button class="lightbox-next" id="lightbox-next" aria-label="Photo suivante">&#8594;</button>
+    <div class="lightbox-content">
+      <img src="" alt="" id="lightbox-img" class="lightbox-img" />
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     6. DRESS CODE
+======================================================== -->
+<section id="dresscode" class="section section--white">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Dress code</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+
+    <p class="dresscode-intro" data-aos="fade-up" data-aos-delay="100">
+      Habillez-vous dans des teintes douces et élégantes, en harmonie avec l'ambiance champêtre et romantique de notre journée.
+    </p>
+
+    <div class="dresscode-palette" data-aos="fade-up" data-aos-delay="150">
+      <div class="palette-item">
+        <div class="palette-swatch" style="background:#F2B8C6;"></div>
+        <span>Rose poudré</span>
+      </div>
+      <div class="palette-item">
+        <div class="palette-swatch" style="background:#B5C9B7;"></div>
+        <span>Vert sauge</span>
+      </div>
+      <div class="palette-item">
+        <div class="palette-swatch" style="background:#BDD5E4;"></div>
+        <span>Bleu ciel</span>
+      </div>
+      <div class="palette-item">
+        <div class="palette-swatch" style="background:#E8D5B0;"></div>
+        <span>Miel / Sable</span>
+      </div>
+      <div class="palette-item">
+        <div class="palette-swatch" style="background:#D4C5A9;"></div>
+        <span>Beige naturel</span>
+      </div>
+      <div class="palette-item">
+        <div class="palette-swatch" style="background:#C9A84C;"></div>
+        <span>Touches dorées</span>
+      </div>
+    </div>
+
+    <div class="dresscode-note" data-aos="fade-up" data-aos-delay="200">
+      <p class="dresscode-rule">
+        ⚠️ <strong>Le blanc est réservé à la mariée.</strong>
+      </p>
+      <p>Évitez également le noir intégral et les couleurs trop vives qui détoneraient dans ce décor fleuri et bucolique.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     7. CAGNOTTE / CADEAU
+======================================================== -->
+<section id="cagnotte" class="section section--rose">
+  <div class="container container--narrow">
+    <h2 class="section-title" data-aos="fade-up">Un cadeau ?</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+
+    <div class="cagnotte-content" data-aos="fade-up" data-aos-delay="100">
+      <p>
+        Votre présence à nos côtés est le plus beau des cadeaux. Si vous souhaitez tout de même nous gâter, 
+        nous avons ouvert une cagnotte pour nous aider à réaliser notre voyage de noces.
+      </p>
+      <p>
+        Chaque contribution, grande ou petite, nous touchera infiniment. Merci du fond du cœur.
+      </p>
+      <a href="#" class="btn btn-primary cagnotte-btn" id="cagnotte-link">
+        🎁 Participer à la cagnotte
+      </a>
+      <p class="cagnotte-note">Le lien de la cagnotte sera disponible prochainement.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     FAQ
+======================================================== -->
+<section id="faq" class="section section--cream">
+  <div class="container container--narrow">
+    <h2 class="section-title" data-aos="fade-up">Questions fréquentes</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+
+    <div class="faq-list">
+
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="0">
+        <button class="faq-question" aria-expanded="false">
+          Y a-t-il un parking sur place au Manoir de Tigeaux ?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-answer">
+          <p>Oui, un grand parking gratuit est disponible sur le domaine du Manoir de Tigeaux. Un service de covoiturage entre invités est encouragé pour plus de convivialité !</p>
+        </div>
+      </div>
+
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="50">
+        <button class="faq-question" aria-expanded="false">
+          Les enfants sont-ils les bienvenus ?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-answer">
+          <p>Bien sûr ! Les enfants sont les bienvenus. Un menu enfant sera prévu. Pas de contrainte vestimentaire particulière pour eux — le confort avant tout !</p>
+        </div>
+      </div>
+
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="100">
+        <button class="faq-question" aria-expanded="false">
+          À quelle heure se termine la soirée ?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-answer">
+          <p>La soirée est prévue jusqu'à environ 2h00 du matin. Des navettes ou informations sur les taxis locaux vous seront communiquées avant l'événement.</p>
+        </div>
+      </div>
+
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="150">
+        <button class="faq-question" aria-expanded="false">
+          Peut-on prendre des photos pendant la cérémonie religieuse ?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-answer">
+          <p>Nous vous demandons de vivre pleinement le moment et de laisser notre photographe faire son travail pendant la cérémonie à l'église. Les photos seront bien sûr les bienvenues pendant le vin d'honneur et la soirée !</p>
+        </div>
+      </div>
+
+      <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
+        <button class="faq-question" aria-expanded="false">
+          Comment me rendre au Manoir de Tigeaux depuis Meaux ?
+          <span class="faq-arrow">▾</span>
+        </button>
+        <div class="faq-answer">
+          <p>Le Manoir de Tigeaux se trouve à environ 15 km de Meaux. En voiture, compter 20 minutes. Il n'y a pas de transport en commun direct — nous vous recommandons de vous organiser en covoiturage entre invités.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     8. RSVP
+======================================================== -->
+<section id="rsvp" class="section section--white">
+  <div class="container container--narrow">
+    <h2 class="section-title" data-aos="fade-up">Confirmation de présence</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+    <p class="rsvp-intro" data-aos="fade-up" data-aos-delay="100">
+      Merci de nous confirmer votre présence avant le <strong>15 juillet 2026</strong>.
+    </p>
+
+    <!-- Formulaire RSVP -->
+    <form id="rsvp-form" class="rsvp-form" data-aos="fade-up" data-aos-delay="150" novalidate>
+
+      <!-- Invité principal -->
+      <div class="guest-block guest-block--main" id="guest-main">
+        <h3 class="guest-block-title">Vous</h3>
+        <div class="guest-fields">
+          <div class="field-row">
+            <div class="field-group">
+              <label for="main-firstname">Prénom <span class="required">*</span></label>
+              <input type="text" id="main-firstname" name="main_firstname" required autocomplete="given-name" />
+            </div>
+            <div class="field-group">
+              <label for="main-lastname">Nom <span class="required">*</span></label>
+              <input type="text" id="main-lastname" name="main_lastname" required autocomplete="family-name" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group field-group--full">
+              <label>Présence <span class="required">*</span></label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="main_attending" value="true" checked />
+                  <span>Oui, je serai là 🎉</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="main_attending" value="false" />
+                  <span>Non, je ne pourrai pas venir</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="field-row attending-fields">
+            <div class="field-group">
+              <label for="main-menu">Choix du menu</label>
+              <select id="main-menu" name="main_menu">
+                <option value="">— Sélectionner —</option>
+                <option value="menu-adulte-standard">Menu adulte (à compléter)</option>
+                <option value="menu-adulte-vegetarien">Option végétarienne</option>
+                <option value="menu-adulte-vegan">Option vegan</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="main-allergies">Allergies / régime</label>
+              <input type="text" id="main-allergies" name="main_allergies" placeholder="Ex : sans gluten, noix…" maxlength="300" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partenaire (optionnel) -->
+      <div class="partner-toggle-wrapper">
+        <button type="button" class="btn btn-outline btn-sm" id="add-partner">
+          + Ajouter mon / ma partenaire
+        </button>
+      </div>
+
+      <div class="guest-block guest-block--partner" id="guest-partner" hidden>
+        <div class="guest-block-header">
+          <h3 class="guest-block-title">Partenaire</h3>
+          <button type="button" class="btn-remove" id="remove-partner" aria-label="Retirer le partenaire">&times;</button>
+        </div>
+        <div class="guest-fields">
+          <div class="field-row">
+            <div class="field-group">
+              <label for="partner-firstname">Prénom <span class="required">*</span></label>
+              <input type="text" id="partner-firstname" name="partner_firstname" autocomplete="off" />
+            </div>
+            <div class="field-group">
+              <label for="partner-lastname">Nom <span class="required">*</span></label>
+              <input type="text" id="partner-lastname" name="partner_lastname" autocomplete="off" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group field-group--full">
+              <label>Présence <span class="required">*</span></label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="partner_attending" value="true" checked />
+                  <span>Oui 🎉</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="partner_attending" value="false" />
+                  <span>Non</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="field-row attending-fields">
+            <div class="field-group">
+              <label for="partner-menu">Choix du menu</label>
+              <select id="partner-menu" name="partner_menu">
+                <option value="">— Sélectionner —</option>
+                <option value="menu-adulte-standard">Menu adulte (à compléter)</option>
+                <option value="menu-adulte-vegetarien">Option végétarienne</option>
+                <option value="menu-adulte-vegan">Option vegan</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="partner-allergies">Allergies / régime</label>
+              <input type="text" id="partner-allergies" name="partner_allergies" placeholder="Ex : sans gluten, noix…" maxlength="300" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enfants (dynamiques) -->
+      <div id="children-container"></div>
+
+      <div class="children-toggle-wrapper">
+        <button type="button" class="btn btn-outline btn-sm" id="add-child">
+          + Ajouter un enfant
+        </button>
+      </div>
+
+      <!-- Champs groupe -->
+      <div class="group-fields" data-aos="fade-up">
+        <div class="field-group">
+          <label for="email-contact">E-mail de contact (optionnel)</label>
+          <input type="email" id="email-contact" name="email_contact" placeholder="pour vous envoyer un rappel" autocomplete="email" maxlength="254" />
+        </div>
+
+        <div class="field-group">
+          <label for="song-suggestion">Suggérez une chanson pour la soirée 🎵 (optionnel)</label>
+          <input type="text" id="song-suggestion" name="song_suggestion" placeholder="Artiste — Titre" maxlength="255" />
+        </div>
+
+        <div class="field-group">
+          <label for="rsvp-message">Un message pour Joyce &amp; Franck (optionnel)</label>
+          <textarea id="rsvp-message" name="message" rows="3" maxlength="1000" placeholder="Vos mots nous toucheront…"></textarea>
+        </div>
+
+        <div class="field-group field-group--checkbox">
+          <label class="checkbox-label">
+            <input type="checkbox" id="need-accommodation" name="need_accommodation" />
+            <span>Je souhaite recevoir des informations sur les hébergements à proximité</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="rsvp-submit">
+        <button type="submit" class="btn btn-primary btn-lg" id="rsvp-submit-btn">
+          Envoyer ma réponse
+        </button>
+      </div>
+
+      <p class="rsvp-deadline-note">Vous pourrez modifier votre réponse jusqu'au <strong>15 juillet 2026</strong> grâce au lien de modification qui vous sera affiché après l'envoi.</p>
+    </form>
+
+    <!-- Confirmation -->
+    <div id="rsvp-confirmation" class="rsvp-confirmation" hidden>
+      <div class="rsvp-confirmation-inner">
+        <div class="rsvp-confirmation-icon">💌</div>
+        <h3>Merci ! Nous avons bien reçu votre réponse.</h3>
+        <p>Joyce &amp; Franck sont impatients de vous retrouver le 19 septembre 2026.</p>
+        <div class="rsvp-edit-token-box" id="rsvp-edit-token-box">
+          <p>Pour modifier votre réponse, conservez ce lien :</p>
+          <a href="" id="rsvp-edit-link" class="rsvp-edit-link"></a>
+          <p class="rsvp-edit-hint">Copiez-le ou ajoutez-le à vos favoris — il ne vous sera pas envoyé par e-mail.</p>
+        </div>
+        <button type="button" class="btn btn-outline" id="rsvp-modify-btn">Modifier ma réponse</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     LIVRE D'OR (masqué par défaut)
+======================================================== -->
+{% if guestbook_enabled %}
+<section id="livre-dor" class="section section--sage">
+  <div class="container container--narrow">
+    <h2 class="section-title" data-aos="fade-up">Livre d'or</h2>
+    <div class="section-ornament" data-aos="fade-up" data-aos-delay="50">✦</div>
+
+    <div class="guestbook-entries">
+      {% for entry in guestbook_entries %}
+      <div class="guestbook-entry" data-aos="fade-up">
+        <p class="guestbook-message">"{{ entry.message }}"</p>
+        <p class="guestbook-author">— {{ entry.author_name }}</p>
+      </div>
+      {% else %}
+      <p class="guestbook-empty">Soyez le premier à laisser un message !</p>
+      {% endfor %}
+    </div>
+
+    <form id="guestbook-form" class="guestbook-form" data-aos="fade-up">
+      <div class="field-group">
+        <label for="gb-name">Votre prénom / nom</label>
+        <input type="text" id="gb-name" required maxlength="200" />
+      </div>
+      <div class="field-group">
+        <label for="gb-message">Votre message</label>
+        <textarea id="gb-message" rows="4" required maxlength="1000"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Laisser un message</button>
+    </form>
+    <p class="guestbook-moderation-note">Les messages sont soumis à modération avant publication.</p>
+  </div>
+</section>
+{% endif %}
+
+<!-- ========================================================
+     FOOTER
+======================================================== -->
+<footer class="footer">
+  <div class="footer-floral" aria-hidden="true">✿ ✦ ✿</div>
+  <p class="footer-names">Joyce &amp; Franck</p>
+  <p class="footer-date">19 · 09 · 2026 — Meaux, France</p>
+  <p class="footer-love">Avec amour, Joyce &amp; Franck 💛</p>
+  <p class="footer-logout"><a href="{{ url_for('logout') }}">Se déconnecter</a></p>
+</footer>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rsvp.js') }}"></script>
+{% endblock %}

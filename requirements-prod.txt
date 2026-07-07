@@ -1,0 +1,4 @@
+# Dépendances de production (inclut le driver PostgreSQL)
+# Utilisé par Railway pour le déploiement
+-r requirements.txt
+psycopg2-binary==2.9.9

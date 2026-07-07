@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg
+*.egg-info/
+dist/
+build/
+*.so
+
+# Environnements virtuels
+venv/
+.venv/
+env/
+ENV/
+
+# Flask / Werkzeug
+instance/
+*.db
+mariage_dev.db
+
+# Variables d'environnement — NE JAMAIS COMMITTER
+.env
+
+# Migrations (garder le dossier, ignorer le cache bytecode)
+migrations/__pycache__/
+
+# Système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Coverage / tests
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+*.log

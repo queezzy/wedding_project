@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block body %}
+<header class="admin-header">
+  <h1>Dashboard RSVP — Joyce &amp; Franck</h1>
+  <div class="admin-header-actions">
+    <a href="{{ url_for('admin_export_csv') }}" class="btn btn-primary">📥 Exporter CSV</a>
+    <a href="{{ url_for('admin_logout') }}" class="btn btn-outline">Se déconnecter</a>
+  </div>
+</header>
+
+<main class="admin-main">
+
+  <!-- Stats -->
+  <div class="admin-stats">
+    <div class="stat-card">
+      <span class="stat-value">{{ groups|length }}</span>
+      <span class="stat-label">groupes / foyers</span>
+    </div>
+    <div class="stat-card stat-card--green">
+      <span class="stat-value">{{ total_attending }}</span>
+      <span class="stat-label">personnes présentes</span>
+    </div>
+    <div class="stat-card stat-card--red">
+      <span class="stat-value">{{ total_declined }}</span>
+      <span class="stat-label">personnes absentes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ total_attending + total_declined }}</span>
+      <span class="stat-label">total réponses</span>
+    </div>
+  </div>
+
+  <!-- Table RSVP -->
+  <section class="admin-section">
+    <h2>Réponses reçues</h2>
+    {% if groups %}
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>E-mail</th>
+            <th>Invités</th>
+            <th>Présents</th>
+            <th>Hébergement</th>
+            <th>Chanson</th>
+            <th>Message</th>
+            <th>Token édition</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for group in groups %}
+          <tr>
+            <td>{{ group.id }}</td>
+            <td>{{ group.submitted_at.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>{{ group.email_contact or '—' }}</td>
+            <td>
+              <ul class="admin-guest-list">
+                {% for guest in group.guests %}
+                <li>
+                  <strong>{{ guest.first_name }} {{ guest.last_name }}</strong>
+                  <span class="guest-type-badge guest-type-badge--{{ guest.guest_type }}">{{ guest.guest_type }}</span>
+                  {% if guest.attending %}
+                    <span class="badge-yes">✓ Oui</span>
+                  {% else %}
+                    <span class="badge-no">✗ Non</span>
+                  {% endif %}
+                  {% if guest.menu_choice %} · {{ guest.menu_choice }}{% endif %}
+                  {% if guest.allergies %} · <em>{{ guest.allergies }}</em>{% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+            </td>
+            <td>{{ group.guests | selectattr('attending') | list | length }}</td>
+            <td>{% if group.need_accommodation %}✓{% else %}—{% endif %}</td>
+            <td>{{ group.song_suggestion or '—' }}</td>
+            <td class="admin-message">{{ group.message or '—' }}</td>
+            <td><code>{{ group.edit_token }}</code></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="admin-empty">Aucune réponse reçue pour l'instant.</p>
+    {% endif %}
+  </section>
+
+  <!-- Livre d'or (si activé) -->
+  {% if guestbook_enabled %}
+  <section class="admin-section">
+    <h2>Livre d'or — en attente de modération ({{ pending_entries|length }})</h2>
+    {% if pending_entries %}
+    <div class="admin-table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr><th>#</th><th>Auteur</th><th>Message</th><th>Date</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for entry in pending_entries %}
+          <tr>
+            <td>{{ entry.id }}</td>
+            <td>{{ entry.author_name }}</td>
+            <td>{{ entry.message }}</td>
+            <td>{{ entry.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('admin_approve_guestbook', entry_id=entry.id) }}">
+                <button type="submit" class="btn btn-primary btn-sm">Approuver</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="admin-empty">Aucun message en attente.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+
+</main>
+{% endblock %}
