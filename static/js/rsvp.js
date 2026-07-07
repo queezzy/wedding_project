@@ -100,10 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const payload = {
       principal_attending:  principalAttending,
-      principal_menu:       principalAttending
-        ? (form.querySelector('[name="principal_menu"]')?.value || '') : '',
-      principal_allergies:  principalAttending
-        ? (form.querySelector('[name="principal_allergies"]')?.value?.trim() || '') : '',
+      principal_entree:     principalAttending
+        ? (form.querySelector('[name="principal_entree"]')?.value || '') : '',
+      principal_plat:       principalAttending
+        ? (form.querySelector('[name="principal_plat"]')?.value || '') : '',
       children_attending_count: parseInt(countInput?.value || '0'),
       children_ages:        form.querySelector('[name="children_ages"]')?.value?.trim() || '',
       email_contact:        document.getElementById('email-contact')?.value?.trim() || '',
@@ -115,11 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (invitee?.has_partner) {
       const partnerAttending =
         form.querySelector('[name="partner_attending"]:checked')?.value === 'true';
-      payload.partner_attending  = partnerAttending;
-      payload.partner_menu       = partnerAttending
-        ? (form.querySelector('[name="partner_menu"]')?.value || '') : '';
-      payload.partner_allergies  = partnerAttending
-        ? (form.querySelector('[name="partner_allergies"]')?.value?.trim() || '') : '';
+      payload.partner_attending = partnerAttending;
+      payload.partner_entree    = partnerAttending
+        ? (form.querySelector('[name="partner_entree"]')?.value || '') : '';
+      payload.partner_plat      = partnerAttending
+        ? (form.querySelector('[name="partner_plat"]')?.value || '') : '';
     }
 
     return payload;

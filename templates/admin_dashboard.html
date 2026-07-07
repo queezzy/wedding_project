@@ -126,15 +126,15 @@
             <td>
               {% if r %}
                 {% if r.principal_attending %}<span class="badge-yes">✓</span>{% else %}<span class="badge-no">✗</span>{% endif %}
-                {% if r.principal_menu %}<br/><small>{{ r.principal_menu }}</small>{% endif %}
-                {% if r.principal_allergies %}<br/><em style="font-size:.75rem">{{ r.principal_allergies }}</em>{% endif %}
+                {% if r.principal_entree %}<br/><small>Entr. : {{ r.principal_entree | replace('eclair-guacamole-gambas', 'Éclair gambas') | replace('opera-foie-gras-poire', 'Foie gras') }}</small>{% endif %}
+                {% if r.principal_plat %}<br/><small>Plat : {{ r.principal_plat | replace('cabillaud-patates-douces', 'Cabillaud') | replace('volaille-girolles-gratin', 'Volaille') }}</small>{% endif %}
               {% else %}—{% endif %}
             </td>
             <td>
               {% if r and inv.has_partner %}
                 {% if r.partner_attending %}<span class="badge-yes">✓</span>{% else %}<span class="badge-no">✗</span>{% endif %}
-                {% if r.partner_menu %}<br/><small>{{ r.partner_menu }}</small>{% endif %}
-                {% if r.partner_allergies %}<br/><em style="font-size:.75rem">{{ r.partner_allergies }}</em>{% endif %}
+                {% if r.partner_entree %}<br/><small>Entr. : {{ r.partner_entree | replace('eclair-guacamole-gambas', 'Éclair gambas') | replace('opera-foie-gras-poire', 'Foie gras') }}</small>{% endif %}
+                {% if r.partner_plat %}<br/><small>Plat : {{ r.partner_plat | replace('cabillaud-patates-douces', 'Cabillaud') | replace('volaille-girolles-gratin', 'Volaille') }}</small>{% endif %}
               {% else %}—{% endif %}
             </td>
             <td style="text-align:center">

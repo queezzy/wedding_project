@@ -155,15 +155,13 @@ def _register_routes(app: Flask) -> None:
         rsvp = RSVPResponse(
             invitee_id=invitee.id,
             principal_attending=bool(data.get("principal_attending", True)),
-            principal_menu=data.get("principal_menu", "").strip() or None,
-            principal_allergies=data.get("principal_allergies", "").strip() or None,
+            principal_entree=data.get("principal_entree", "").strip() or None,
+            principal_plat=data.get("principal_plat", "").strip() or None,
             partner_attending=bool(data.get("partner_attending")) if invitee.has_partner else None,
-            partner_menu=data.get("partner_menu", "").strip() or None if invitee.has_partner else None,
-            partner_allergies=data.get("partner_allergies", "").strip() or None if invitee.has_partner else None,
+            partner_entree=data.get("partner_entree", "").strip() or None if invitee.has_partner else None,
+            partner_plat=data.get("partner_plat", "").strip() or None if invitee.has_partner else None,
             children_attending_count=children_count,
             children_ages=data.get("children_ages", "").strip() or None,
-            children_menu=data.get("children_menu", "").strip() or None,
-            children_allergies=data.get("children_allergies", "").strip() or None,
             email_contact=data.get("email_contact", "").strip() or None,
             song_suggestion=data.get("song_suggestion", "").strip() or None,
             message=data.get("message", "").strip() or None,
@@ -199,16 +197,14 @@ def _register_routes(app: Flask) -> None:
             return jsonify({"error": f"Nombre d'enfants invalide (max {invitee.max_children})."}), 400
 
         rsvp.principal_attending = bool(data.get("principal_attending", True))
-        rsvp.principal_menu = data.get("principal_menu", "").strip() or None
-        rsvp.principal_allergies = data.get("principal_allergies", "").strip() or None
+        rsvp.principal_entree = data.get("principal_entree", "").strip() or None
+        rsvp.principal_plat = data.get("principal_plat", "").strip() or None
         if invitee.has_partner:
             rsvp.partner_attending = bool(data.get("partner_attending"))
-            rsvp.partner_menu = data.get("partner_menu", "").strip() or None
-            rsvp.partner_allergies = data.get("partner_allergies", "").strip() or None
+            rsvp.partner_entree = data.get("partner_entree", "").strip() or None
+            rsvp.partner_plat = data.get("partner_plat", "").strip() or None
         rsvp.children_attending_count = children_count
         rsvp.children_ages = data.get("children_ages", "").strip() or None
-        rsvp.children_menu = data.get("children_menu", "").strip() or None
-        rsvp.children_allergies = data.get("children_allergies", "").strip() or None
         rsvp.email_contact = data.get("email_contact", "").strip() or None
         rsvp.song_suggestion = data.get("song_suggestion", "").strip() or None
         rsvp.message = data.get("message", "").strip() or None
@@ -337,8 +333,8 @@ def _register_routes(app: Flask) -> None:
             "id", "code", "nom", "prénom",
             "a_conjoint", "nom_conjoint", "prénom_conjoint", "nb_enfants_max",
             "rsvp_envoyé",
-            "invité_présent", "menu_invité", "allergies_invité",
-            "conjoint_présent", "menu_conjoint", "allergies_conjoint",
+            "invité_présent", "entrée_invité", "plat_invité",
+            "conjoint_présent", "entrée_conjoint", "plat_conjoint",
             "nb_enfants_présents", "ages_enfants",
             "hébergement", "chanson", "message", "email", "date_réponse",
         ])
@@ -352,11 +348,11 @@ def _register_routes(app: Flask) -> None:
                 inv.max_children,
                 "Oui" if r else "Non",
                 ("Oui" if r.principal_attending else "Non") if r else "",
-                r.principal_menu or "" if r else "",
-                r.principal_allergies or "" if r else "",
+                r.principal_entree or "" if r else "",
+                r.principal_plat or "" if r else "",
                 ("Oui" if r.partner_attending else "Non") if r and inv.has_partner else "",
-                r.partner_menu or "" if r else "",
-                r.partner_allergies or "" if r else "",
+                r.partner_entree or "" if r else "",
+                r.partner_plat or "" if r else "",
                 r.children_attending_count if r else "",
                 r.children_ages or "" if r else "",
                 ("Oui" if r.need_accommodation else "Non") if r else "",

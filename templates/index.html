@@ -501,25 +501,32 @@
           </div>
           <div class="field-row attending-fields" id="principal-attending-fields">
             <div class="field-group">
-              <label for="principal-menu">Choix du menu</label>
-              <select id="principal-menu" name="principal_menu">
+              <label for="principal-entree">Choix de l'entrée <span class="required">*</span></label>
+              <select id="principal-entree" name="principal_entree">
                 <option value="">— Sélectionner —</option>
-                <option value="menu-adulte-standard"
-                  {% if rsvp and rsvp.principal_menu == 'menu-adulte-standard' %}selected{% endif %}>
-                  Menu adulte (à compléter)</option>
-                <option value="menu-adulte-vegetarien"
-                  {% if rsvp and rsvp.principal_menu == 'menu-adulte-vegetarien' %}selected{% endif %}>
-                  Option végétarienne</option>
-                <option value="menu-adulte-vegan"
-                  {% if rsvp and rsvp.principal_menu == 'menu-adulte-vegan' %}selected{% endif %}>
-                  Option vegan</option>
+                <option value="eclair-guacamole-gambas"
+                  {% if rsvp and rsvp.principal_entree == 'eclair-guacamole-gambas' %}selected{% endif %}>
+                  Éclair au guacamole et gambas épicées
+                </option>
+                <option value="opera-foie-gras-poire"
+                  {% if rsvp and rsvp.principal_entree == 'opera-foie-gras-poire' %}selected{% endif %}>
+                  Opéra de foie gras et chutney de poire
+                </option>
               </select>
             </div>
             <div class="field-group">
-              <label for="principal-allergies">Allergies / régime</label>
-              <input type="text" id="principal-allergies" name="principal_allergies"
-                placeholder="Ex : sans gluten, noix…" maxlength="300"
-                value="{{ rsvp.principal_allergies or '' if rsvp else '' }}" />
+              <label for="principal-plat">Choix du plat <span class="required">*</span></label>
+              <select id="principal-plat" name="principal_plat">
+                <option value="">— Sélectionner —</option>
+                <option value="cabillaud-patates-douces"
+                  {% if rsvp and rsvp.principal_plat == 'cabillaud-patates-douces' %}selected{% endif %}>
+                  Dos de cabillaud rôti, mousseline de patates douces et tagliatelles de légumes
+                </option>
+                <option value="volaille-girolles-gratin"
+                  {% if rsvp and rsvp.principal_plat == 'volaille-girolles-gratin' %}selected{% endif %}>
+                  Suprême de volaille à la crème aux girolles, gratin de pommes de terre et tagliatelles de légumes
+                </option>
+              </select>
             </div>
           </div>
         </div>
@@ -552,25 +559,32 @@
           </div>
           <div class="field-row attending-fields" id="partner-attending-fields">
             <div class="field-group">
-              <label for="partner-menu">Choix du menu</label>
-              <select id="partner-menu" name="partner_menu">
+              <label for="partner-entree">Choix de l'entrée <span class="required">*</span></label>
+              <select id="partner-entree" name="partner_entree">
                 <option value="">— Sélectionner —</option>
-                <option value="menu-adulte-standard"
-                  {% if rsvp and rsvp.partner_menu == 'menu-adulte-standard' %}selected{% endif %}>
-                  Menu adulte (à compléter)</option>
-                <option value="menu-adulte-vegetarien"
-                  {% if rsvp and rsvp.partner_menu == 'menu-adulte-vegetarien' %}selected{% endif %}>
-                  Option végétarienne</option>
-                <option value="menu-adulte-vegan"
-                  {% if rsvp and rsvp.partner_menu == 'menu-adulte-vegan' %}selected{% endif %}>
-                  Option vegan</option>
+                <option value="eclair-guacamole-gambas"
+                  {% if rsvp and rsvp.partner_entree == 'eclair-guacamole-gambas' %}selected{% endif %}>
+                  Éclair au guacamole et gambas épicées
+                </option>
+                <option value="opera-foie-gras-poire"
+                  {% if rsvp and rsvp.partner_entree == 'opera-foie-gras-poire' %}selected{% endif %}>
+                  Opéra de foie gras et chutney de poire
+                </option>
               </select>
             </div>
             <div class="field-group">
-              <label for="partner-allergies">Allergies / régime</label>
-              <input type="text" id="partner-allergies" name="partner_allergies"
-                placeholder="Ex : sans gluten, noix…" maxlength="300"
-                value="{{ rsvp.partner_allergies or '' if rsvp else '' }}" />
+              <label for="partner-plat">Choix du plat <span class="required">*</span></label>
+              <select id="partner-plat" name="partner_plat">
+                <option value="">— Sélectionner —</option>
+                <option value="cabillaud-patates-douces"
+                  {% if rsvp and rsvp.partner_plat == 'cabillaud-patates-douces' %}selected{% endif %}>
+                  Dos de cabillaud rôti, mousseline de patates douces et tagliatelles de légumes
+                </option>
+                <option value="volaille-girolles-gratin"
+                  {% if rsvp and rsvp.partner_plat == 'volaille-girolles-gratin' %}selected{% endif %}>
+                  Suprême de volaille à la crème aux girolles, gratin de pommes de terre et tagliatelles de légumes
+                </option>
+              </select>
             </div>
           </div>
         </div>
